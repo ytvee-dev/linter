@@ -120,6 +120,12 @@ Add to your `package.json`:
 
 Only rules with a reliable ESLint implementation are executable. CSS and HTML/Web SonarQube rules stay metadata-only until this package has a supported analyzer path for those languages. Profile-level execution is tracked through `coveredByProfiles`: plain `sonar` adds generated SonarJS rules on top of `base`, while `react-sonar` also inherits React and a11y mappings that are already covered by the React profile.
 
+## Package Contents
+
+The npm package intentionally ships only the runtime/public surface: `README.md`, `README_RU.md`, `LICENSE`, `configs`, `eslint.config.mjs`, and `prettier.js`.
+
+Repository documentation, roadmaps, scripts, generated docbook pages, `.husky`, and raw refresh artifacts are kept in this repository but are not included in the npm tarball. `configs/sonar-catalog.generated.json` remains in the package intentionally because it is exported as `@ytdev/linter/configs/sonar-catalog`.
+
 ## Requirements
 
 - Node.js >= 18

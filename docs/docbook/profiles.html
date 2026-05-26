@@ -82,6 +82,7 @@ export default [...sonarConfig];
 export default [...reactSonarConfig];
 </code></pre></div>
 <p>The metadata catalog is available as <code>@ytdev/linter/configs/sonar-catalog</code>. It is the canonical runtime metadata catalog in this repository, and <code>coveredByProfiles</code> shows which public profiles already execute a mapped rule. Plain <code>sonar</code> covers <code>base</code> plus generated SonarJS execution; React-only external mappings stay in <code>react</code> and <code>react-sonar</code>. ESLint executes only reliable JS/TS implementations; CSS and HTML/Web rules are metadata-only.</p>
+<p>Package surface note: repo docs, roadmaps, scripts, generated docbook pages, <code>.husky</code>, and raw refresh artifacts are not included in the npm tarball. The generated catalog stays in the package intentionally because <code>@ytdev/linter/configs/sonar-catalog</code> is a public runtime metadata export.</p>
 <h2>Распространённые комбинации</h2>
 <h3>Базовый JavaScript/TypeScript проект</h3>
 <p>Для стандартного Node.js или TypeScript проекта без React:</p>

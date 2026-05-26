@@ -91,6 +91,9 @@ export default [...strictConfig];
 <ul><li><strong>Base</strong> (<code>@ytdev/linter</code>) - JavaScript/TypeScript с Prettier</li>
 <li><strong>React</strong> (<code>@ytdev/linter/configs/react</code>) - Base + правила React</li>
 <li><strong>Strict</strong> (<code>@ytdev/linter/configs/strict</code>) - React + строгие правила именования и запрет any</li></ul>
+<h2>Содержимое пакета</h2>
+<p>npm-пакет намеренно содержит только runtime/public surface: <code>README.md</code>, <code>README_RU.md</code>, <code>LICENSE</code>, <code>configs</code>, <code>eslint.config.mjs</code> и <code>prettier.js</code>.</p>
+<p>Документация репозитория, roadmaps, scripts, generated docbook pages, <code>.husky</code> и raw refresh artifacts остаются в репозитории, но не входят в npm tarball. <code>configs/sonar-catalog.generated.json</code> остаётся в пакете намеренно, потому что экспортируется как <code>@ytdev/linter/configs/sonar-catalog</code>.</p>
 <h2>Требования</h2>
 <ul><li>Node.js >= 18</li>
 <li>ESLint >= 9.0.0</li>
