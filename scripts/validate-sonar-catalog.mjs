@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { sonarCommonRules, sonarTypeCheckedRules } from '../configs/rules/sonar.generated.mjs';
 
+import { buildPublicProfileRuleIds, getCoveredProfiles, PUBLIC_PROFILE_ORDER } from './sonar-profile-coverage.mjs';
 import { loadSonarSource } from './sonar-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -13,6 +14,7 @@ const generatedCatalogPath = path.join(rootDir, 'configs', 'sonar-catalog.genera
 const generatedCatalog = JSON.parse(await fs.readFile(generatedCatalogPath, 'utf8'));
 const { sourceKind, sourceRules } = await loadSonarSource(rootDir);
 const generatedRules = generatedCatalog.rules ?? [];
+const publicProfileRuleIds = buildPublicProfileRuleIds(sonarCommonRules, sonarTypeCheckedRules);
 
 assert(sourceRules.length === 1095, `Expected 1095 source rules, received ${sourceRules.length}`);
 assert(generatedRules.length === sourceRules.length, 'Generated catalog does not cover every raw rule');
@@ -34,6 +36,12 @@ const executableRuleIds = [...Object.keys(sonarCommonRules), ...Object.keys(sona
 assertNoDuplicates(executableRuleIds, 'executable ESLint rule id');
 
 for (const rule of generatedRules) {
+  assert(Array.isArray(rule.coveredByProfiles ?? []), `${rule.key} has invalid coveredByProfiles`);
+  assert(
+    (rule.coveredByProfiles ?? []).every((profileName) => PUBLIC_PROFILE_ORDER.includes(profileName)),
+    `${rule.key} references unknown public profile coverage`,
+  );
+
   if (rule.status === 'DEPRECATED') {
     assert(rule.integrationStatus === 'deprecated', `${rule.key} is deprecated but not marked deprecated`);
     assert(!rule.enabledByDefault, `${rule.key} is deprecated but enabled`);
@@ -49,6 +57,23 @@ for (const rule of generatedRules) {
   if (rule.integrationStatus === 'sonarjs') {
     assert(rule.eslintRuleId?.startsWith('sonarjs/'), `${rule.key} has invalid SonarJS rule id`);
     assert(executableRuleIds.includes(rule.eslintRuleId), `${rule.key} is not in executable rules`);
+  }
+
+  const expectedCoveredByProfiles = getCoveredProfiles(rule, publicProfileRuleIds);
+
+  assert(
+    JSON.stringify(rule.coveredByProfiles ?? []) === JSON.stringify(expectedCoveredByProfiles),
+    `${rule.key} has mismatched coveredByProfiles: ${JSON.stringify({
+      actual: rule.coveredByProfiles ?? [],
+      expected: expectedCoveredByProfiles,
+    })}`,
+  );
+
+  if (rule.integrationStatus === 'external-eslint') {
+    assert(
+      expectedCoveredByProfiles.length > 0,
+      `${rule.key} is external-eslint but not covered by any public profile`,
+    );
   }
 }
 

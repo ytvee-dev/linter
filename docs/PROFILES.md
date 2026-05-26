@@ -84,7 +84,7 @@ import sonarConfig from '@ytvee-dev/eslint-config-react/configs/sonar';
 export default [...sonarConfig];
 ```
 
-The compact metadata catalog is available through `@ytvee-dev/eslint-config-react/configs/sonar-catalog`. It covers all imported SonarQube frontend rules, including metadata-only CSS/HTML/Web rules and deprecated rules.
+The compact metadata catalog is available through `@ytvee-dev/eslint-config-react/configs/sonar-catalog`. It is the canonical runtime metadata catalog in this repository, and `coveredByProfiles` shows which public profiles already execute a mapped rule. Plain `sonar` covers `base` plus generated SonarJS execution; React-only external mappings stay in `react` and `react-sonar`.
 
 ### React Sonar Profile
 
@@ -99,6 +99,7 @@ export default [...reactSonarConfig];
 ```
 
 Use this profile for JSX/TSX projects so JSX parser options and React rules are active before SonarJS checks run.
+React-specific Sonar equivalents that are already mapped to `react` or `jsx-a11y` rules remain profile-specific and therefore show up in `react-sonar`, not plain `sonar`.
 
 ## Common Combinations
 

@@ -83,7 +83,7 @@ import reactSonarConfig from '@ytvee-dev/eslint-config-react/configs/react-sonar
 export default [...reactSonarConfig];
 ```
 
-The metadata catalog is available as `@ytvee-dev/eslint-config-react/configs/sonar-catalog`. It covers all 1095 imported SonarQube frontend rules. ESLint executes only reliable JS/TS implementations; CSS and HTML/Web rules are metadata-only.
+The metadata catalog is available as `@ytvee-dev/eslint-config-react/configs/sonar-catalog`. It is the canonical runtime metadata catalog in this repository, and `coveredByProfiles` shows which public profiles already execute a mapped rule. Plain `sonar` covers `base` plus generated SonarJS execution; React-only external mappings stay in `react` and `react-sonar`. ESLint executes only reliable JS/TS implementations; CSS and HTML/Web rules are metadata-only.
 
 ## Распространённые комбинации
 

@@ -109,14 +109,14 @@ Add to your `package.json`:
 - **React** (`@ytvee-dev/eslint-config-react/configs/react`) - Base + React rules
 - **Strict** (`@ytvee-dev/eslint-config-react/configs/strict`) - React + strict naming and no-any rules
 - **Sonar** (`@ytvee-dev/eslint-config-react/configs/sonar`) - Base + generated SonarJS executable rules
-- **React Sonar** (`@ytvee-dev/eslint-config-react/configs/react-sonar`) - React + generated SonarJS executable rules
+- **React Sonar** (`@ytvee-dev/eslint-config-react/configs/react-sonar`) - React + generated SonarJS executable rules plus React/a11y equivalents already covered by the React profile
 - **Sonar catalog** (`@ytvee-dev/eslint-config-react/configs/sonar-catalog`) - compact metadata coverage for all imported SonarQube frontend rules
 
 ## SonarQube Coverage
 
-`sonarqube-frontend-rules.json` is integrated as a source catalog, not as a fake ESLint rule set. The generated catalog currently covers all 1095 imported rules: 470 SonarJS-backed records, 79 records already covered by existing ESLint rules, 479 metadata-only records, and 67 deprecated records.
+`configs/sonar-catalog.generated.json` is the canonical runtime metadata catalog in this repository. A raw `sonarqube-frontend-rules.json` export is only an optional refresh artifact when it is present. The generated catalog currently covers all 1095 imported rules: 470 SonarJS-backed records, 79 records already covered by existing ESLint rules, 479 metadata-only records, and 67 deprecated records.
 
-Only rules with a reliable ESLint implementation are executable. CSS and HTML/Web SonarQube rules stay metadata-only until this package has a supported analyzer path for those languages.
+Only rules with a reliable ESLint implementation are executable. CSS and HTML/Web SonarQube rules stay metadata-only until this package has a supported analyzer path for those languages. Profile-level execution is tracked through `coveredByProfiles`: plain `sonar` adds generated SonarJS rules on top of `base`, while `react-sonar` also inherits React and a11y mappings that are already covered by the React profile.
 
 ## Requirements
 

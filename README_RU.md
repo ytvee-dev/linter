@@ -122,7 +122,7 @@ MIT © [YT-Dev](https://github.com/ytvee-dev)
 Added opt-in SonarQube integration:
 
 - `@ytvee-dev/eslint-config-react/configs/sonar` - base profile plus generated executable SonarJS rules.
-- `@ytvee-dev/eslint-config-react/configs/react-sonar` - React profile plus generated executable SonarJS rules.
+- `@ytvee-dev/eslint-config-react/configs/react-sonar` - React profile plus generated executable SonarJS rules and React/a11y equivalents already covered by the React profile.
 - `@ytvee-dev/eslint-config-react/configs/sonar-catalog` - compact metadata catalog for all imported SonarQube frontend rules.
 
-The raw `sonarqube-frontend-rules.json` catalog is integrated as metadata coverage. ESLint executes only rules that have a reliable ESLint/SonarJS implementation. CSS and HTML/Web SonarQube rules are kept as metadata-only records.
+`configs/sonar-catalog.generated.json` is the canonical runtime metadata catalog in this repository. A raw `sonarqube-frontend-rules.json` export is only an optional refresh artifact when it is present. ESLint executes only rules that have a reliable ESLint/SonarJS implementation. CSS and HTML/Web SonarQube rules are kept as metadata-only records, and `coveredByProfiles` shows which public profiles already execute each mapped rule.

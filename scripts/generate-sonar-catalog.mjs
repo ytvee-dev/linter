@@ -14,6 +14,7 @@ import { oneModuleRule } from '../configs/rules/one-module.rule.mjs';
 import { reactRule } from '../configs/rules/react.rule.mjs';
 import { typescriptRule } from '../configs/rules/typescript.rule.mjs';
 
+import { buildPublicProfileRuleIds, getCoveredProfiles } from './sonar-profile-coverage.mjs';
 import { createGeneratedSourceMetadata, loadSonarSource } from './sonar-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -107,6 +108,12 @@ for (const [ruleId, rule] of [...executableRulesById.entries()].sort(([left], [r
   }
 }
 
+const publicProfileRuleIds = buildPublicProfileRuleIds(commonRules, typeCheckedRules);
+
+for (const rule of cleanRules) {
+  rule.coveredByProfiles = getCoveredProfiles(rule, publicProfileRuleIds);
+}
+
 const generatedCatalog = {
   generatedAt: new Date().toISOString(),
   source: createGeneratedSourceMetadata(sourceKind, sourcePath, sourceMeta, rootDir),
@@ -120,6 +127,7 @@ const generatedCatalog = {
     executableRuleCount: executableRulesById.size,
     executableCommonRuleCount: Object.keys(commonRules).length,
     executableTypeCheckedRuleCount: Object.keys(typeCheckedRules).length,
+    externalCoverageByProfile: countCoveredProfiles(cleanRules),
   },
   rules: cleanRules,
 };
@@ -267,6 +275,18 @@ function countBy(items, field) {
     counts[key] = (counts[key] ?? 0) + 1;
     return counts;
   }, {});
+}
+
+function countCoveredProfiles(items) {
+  return items
+    .filter((item) => item.integrationStatus === 'external-eslint')
+    .reduce((counts, item) => {
+      for (const profileName of item.coveredByProfiles ?? []) {
+        counts[profileName] = (counts[profileName] ?? 0) + 1;
+      }
+
+      return counts;
+    }, {});
 }
 
 function buildGeneratedRulesModule(commonRules, typeCheckedRules) {

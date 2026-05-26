@@ -26,10 +26,11 @@ Integrate every rule from `sonarqube-frontend-rules.json` without duplicate lint
 - `configs/sonar-catalog.generated.json` is the fallback source of truth when the raw export is absent.
 - `configs/sonar-catalog.generated.json` is the compact runtime/documentation catalog.
 - `configs/rules/sonar.generated.mjs` is the executable ESLint rule map.
+- Sonar coverage is tracked at two levels: package-level integration status and profile-level execution via `coveredByProfiles`.
 - `status: DEPRECATED` rules stay in the catalog but are never enabled.
 - CSS and HTML/Web rules stay metadata-only until this package has a supported analyzer path for them.
 - JS/TS rules are enabled only when `eslint-plugin-sonarjs` exposes the matching RSPEC rule.
-- Rules already covered by the existing base/React/TypeScript configs are recorded as `external-eslint` coverage instead of being enabled twice.
+- Rules already covered by the existing base/React/TypeScript configs are recorded as `external-eslint` coverage instead of being enabled twice, with the exact public profiles recorded in `coveredByProfiles`.
 
 ## Verification
 
