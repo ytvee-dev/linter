@@ -9,7 +9,7 @@
   - [Общие правила @eslint/js](#общие-правила-eslintjs-config-recommended)
   - [Best Practices (Airbnb)](#best-practices-airbnb)
   - [Импорты](#импорты)
-  - [Форматирование (Prettier)](#форматирование-prettier)
+  - [Отключение конфликтов с Prettier](#отключение-конфликтов-с-prettier)
   - [Правила TypeScript](#правила-typescript-eslint-config-recommendedtypechecked)
   - [Кастомные TypeScript правила](#кастомные-ts-усиления-поверх-рекомендованного-набора)
 - [React-профиль](#react-профиль-configsreactmjs)
@@ -54,7 +54,7 @@ export default [...reactSonarConfig];
 
 ## Базовый профиль (JavaScript + TypeScript)
 
-Профиль `eslint.config.mjs` собирает рекомендации `@eslint/js`, набор `typescript-eslint` в режиме type-checked, дополнительные правила для импортов и форматирования. Все правила из этого раздела применяются к `.js/.mjs/.ts/.tsx` файлам, если не указано иное.
+Профиль `eslint.config.mjs` собирает рекомендации `@eslint/js`, набор `typescript-eslint` в режиме type-checked, дополнительные правила для импортов и отключение конфликтов через `eslint-config-prettier`. Форматирование выполняется отдельным CLI-шагом Prettier, а не как ESLint rule errors. Все правила из этого раздела применяются к `.js/.mjs/.ts/.tsx` файлам, если не указано иное.
 
 ### Общие правила @eslint/js (config `recommended`)
 

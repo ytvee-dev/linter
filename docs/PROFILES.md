@@ -2,6 +2,20 @@
 
 This document explains how to use different configuration profiles from `@ytdev/linter` in your project.
 
+## Default Zero-Config CLI Path
+
+For the standard setup, install the package and run the CLI without creating `eslint.config.mjs`:
+
+```bash
+npm install -D @ytdev/linter
+npx ytdev-linter lint
+npx ytdev-linter fix
+npx ytdev-linter format
+npx ytdev-linter format --check
+```
+
+`ytdev-linter lint` and `ytdev-linter fix` use a project `eslint.config.*` when one exists. If no local ESLint flat config exists, they fall back to the package default non-Sonar config. Direct profile imports are the advanced path for projects that need React, strict, Sonar, React Sonar, or custom overrides through raw ESLint.
+
 ## Available Profiles
 
 ### Base Profile

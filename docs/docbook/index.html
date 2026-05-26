@@ -52,8 +52,27 @@ yarn add -D @ytdev/linter
 # pnpm
 pnpm add -D @ytdev/linter
 </code></pre></div>
-<h3>Настройка</h3>
-<p>Создайте файл <code>eslint.config.mjs</code> в корне проекта:</p>
+<p>Команда установки не изменяет файлы вашего проекта, не добавляет lifecycle hooks и не создаёт ESLint config автоматически. После установки функции пакета доступны через локальный binary <code>ytdev-linter</code>:</p>
+<div class="code-block"><pre><code>npx ytdev-linter lint
+npx ytdev-linter fix
+npx ytdev-linter format
+npx ytdev-linter format --check
+</code></pre></div>
+<code>lint</code> и <code>fix</code> используют локальный <code>eslint.config.*</code>, если он есть. Если в проекте нет ESLint flat config, они используют default non-Sonar config из пакета, поэтому базовый JavaScript/TypeScript frontend project может начать работу только с команды установки. Для TypeScript проектов всё равно нужен валидный project <code>tsconfig.json</code>, чтобы type-aware rules работали корректно.
+<h3>Добавьте скрипты</h3>
+<p>Добавьте в ваш <code>package.json</code>, если хотите короткие project scripts:</p>
+<div class="code-block"><pre><code>{
+  "scripts": {
+    "lint": "ytdev-linter lint",
+    "fix": "ytdev-linter fix",
+    "format": "ytdev-linter format",
+    "format:check": "ytdev-linter format --check"
+  }
+}
+</code></pre></div>
+<code>fix</code> запускает ESLint autofix через default non-Sonar flow, затем Prettier. <code>format</code> запускает только Prettier. Sonar profiles остаются opt-in и не входят в default fix flow.
+<h3>Опциональная конфигурация ESLint</h3>
+<p>Для default CLI path файл <code>eslint.config.mjs</code> не нужен. Создавайте его только если хотите выбрать конкретный публичный профиль или добавить локальные overrides.</p>
 <p><strong>Для React-проектов:</strong></p>
 <div class="code-block"><pre><code>import reactConfig from '@ytdev/linter/configs/react';
 
@@ -70,6 +89,7 @@ export default [...baseConfig];
 export default [...strictConfig];
 </code></pre></div>
 <h3>Настройка Prettier</h3>
+<p>CLI может запускать Prettier без project config. Добавляйте Prettier config только для editor integration или прямого использования <code>prettier</code>:</p>
 <p>Создайте файл <code>.prettierrc.js</code>:</p>
 <div class="code-block"><pre><code>module.exports = require('@ytdev/linter/prettier');
 </code></pre></div>
@@ -78,26 +98,14 @@ export default [...strictConfig];
   "extends": "@ytdev/linter/prettier"
 }
 </code></pre></div>
-<h3>Добавьте скрипты</h3>
-<p>Добавьте в ваш <code>package.json</code>:</p>
-<div class="code-block"><pre><code>{
-  "scripts": {
-    "lint": "eslint .",
-    "fix": "ytdev-linter fix",
-    "format": "ytdev-linter format",
-    "format:check": "ytdev-linter format --check"
-  }
-}
-</code></pre></div>
-<code>fix</code> запускает ESLint autofix с default non-Sonar config, затем Prettier. <code>format</code> запускает только Prettier. Sonar profiles остаются opt-in и не входят в default fix flow.
-<h3>Consumer Husky setup</h3>
-<p>Pre-commit hooks are opt-in and are never installed during package installation. To add the managed hook block to the current Git project:</p>
+<h3>Настройка Husky в consumer project</h3>
+<p>Pre-commit hooks включаются только явно и никогда не устанавливаются во время package installation. Чтобы добавить managed hook block в текущий Git project:</p>
 <div class="code-block"><pre><code>npx ytdev-linter husky enable
 </code></pre></div>
-<p>To remove only the managed block and keep any custom hook content:</p>
+<p>Чтобы удалить только managed block и сохранить пользовательское содержимое hook:</p>
 <div class="code-block"><pre><code>npx ytdev-linter husky disable
 </code></pre></div>
-<p>The generated block is marked with <code># @ytdev/linter begin</code> and <code># @ytdev/linter end</code>. It runs the local ESLint binary with <code>npx --no-install</code>, so it does not download packages during commit.</p>
+<p>Generated block помечен строками <code># @ytdev/linter begin</code> и <code># @ytdev/linter end</code>. Он запускает <code>npx --no-install ytdev-linter lint</code>, поэтому использует тот же zero-config fallback и не скачивает пакеты во время commit.</p>
 <h2>Доступные конфигурации</h2>
 <ul><li><strong>Base</strong> (<code>@ytdev/linter</code>) - JavaScript/TypeScript semantic linting с отключением конфликтов Prettier</li>
 <li><strong>React</strong> (<code>@ytdev/linter/configs/react</code>) - Base + правила React</li>

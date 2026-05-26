@@ -11,7 +11,7 @@ import { importsRule } from './rules/import-sort.rule.mjs';
 import { javascriptRule } from './rules/javascript.rule.mjs';
 import { typescriptRule } from './rules/typescript.rule.mjs';
 
-const tsconfigRootDir = new URL('..', import.meta.url).pathname;
+const tsconfigRootDir = process.cwd();
 
 export default [
   ignoreRule,

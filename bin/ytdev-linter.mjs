@@ -5,20 +5,32 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 const PACKAGE_NAME = '@ytdev/linter';
+const PACKAGE_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const PACKAGE_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'eslint.config.mjs');
 const BEGIN_MARKER = '# @ytdev/linter begin';
 const END_MARKER = '# @ytdev/linter end';
-const HOOK_COMMAND = 'npx --no-install eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives';
+const HOOK_COMMAND = 'npx --no-install ytdev-linter lint';
 const require = createRequire(import.meta.url);
 const DEFAULT_TARGETS = ['.'];
 const ESLINT_ARGS = ['--ext', '.js,.mjs,.ts,.tsx', '--report-unused-disable-directives'];
+const ESLINT_CONFIG_FILES = [
+  'eslint.config.js',
+  'eslint.config.mjs',
+  'eslint.config.cjs',
+  'eslint.config.ts',
+  'eslint.config.mts',
+  'eslint.config.cts',
+];
 
 const helpText = `
 ytdev-linter
 
 Usage:
   ytdev-linter --help
+  ytdev-linter lint [paths...]
   ytdev-linter format [--check] [paths...]
   ytdev-linter fix [paths...]
   ytdev-linter init --husky
@@ -26,6 +38,7 @@ Usage:
   ytdev-linter husky disable
 
 Commands:
+  lint             Run ESLint for the provided paths, or "." by default.
   format           Run Prettier write for the provided paths, or "." by default.
   format --check   Run Prettier check for the provided paths, or "." by default.
   fix              Run ESLint autofix for the default non-Sonar config, then Prettier write.
@@ -65,6 +78,18 @@ function runEslint(args) {
   return runNodeBin(path.join(path.dirname(require.resolve('eslint/package.json')), 'bin', 'eslint.js'), args);
 }
 
+function hasConsumerEslintConfig(cwd) {
+  return ESLINT_CONFIG_FILES.some((fileName) => fs.existsSync(path.join(cwd, fileName)));
+}
+
+function getEslintConfigArgs() {
+  return hasConsumerEslintConfig(process.cwd()) ? [] : ['--config', PACKAGE_ESLINT_CONFIG];
+}
+
+function lint(args) {
+  process.exitCode = runEslint([...getTargets(args), ...getEslintConfigArgs(), ...ESLINT_ARGS]);
+}
+
 function format(args) {
   const [maybeCheck, ...rest] = args;
   const isCheck = maybeCheck === '--check';
@@ -76,7 +101,7 @@ function format(args) {
 
 function fix(args) {
   const targets = getTargets(args);
-  const eslintStatus = runEslint([...targets, ...ESLINT_ARGS, '--fix']);
+  const eslintStatus = runEslint([...targets, ...getEslintConfigArgs(), ...ESLINT_ARGS, '--fix']);
 
   if (eslintStatus !== 0) {
     process.exitCode = eslintStatus;
@@ -170,6 +195,11 @@ function run(argv) {
 
   if (command === 'format') {
     format([subcommand, ...rest].filter(Boolean));
+    return;
+  }
+
+  if (command === 'lint') {
+    lint([subcommand, ...rest].filter(Boolean));
     return;
   }
 

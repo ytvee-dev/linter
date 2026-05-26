@@ -31,9 +31,37 @@ yarn add -D @ytdev/linter
 pnpm add -D @ytdev/linter
 ```
 
-### Настройка
+Команда установки не изменяет файлы вашего проекта, не добавляет lifecycle hooks и не создаёт ESLint config автоматически. После установки функции пакета доступны через локальный binary `ytdev-linter`:
 
-Создайте файл `eslint.config.mjs` в корне проекта:
+```bash
+npx ytdev-linter lint
+npx ytdev-linter fix
+npx ytdev-linter format
+npx ytdev-linter format --check
+```
+
+`lint` и `fix` используют локальный `eslint.config.*`, если он есть. Если в проекте нет ESLint flat config, они используют default non-Sonar config из пакета, поэтому базовый JavaScript/TypeScript frontend project может начать работу только с команды установки. Для TypeScript проектов всё равно нужен валидный project `tsconfig.json`, чтобы type-aware rules работали корректно.
+
+### Добавьте скрипты
+
+Добавьте в ваш `package.json`, если хотите короткие project scripts:
+
+```json
+{
+  "scripts": {
+    "lint": "ytdev-linter lint",
+    "fix": "ytdev-linter fix",
+    "format": "ytdev-linter format",
+    "format:check": "ytdev-linter format --check"
+  }
+}
+```
+
+`fix` запускает ESLint autofix через default non-Sonar flow, затем Prettier. `format` запускает только Prettier. Sonar profiles остаются opt-in и не входят в default fix flow.
+
+### Опциональная конфигурация ESLint
+
+Для default CLI path файл `eslint.config.mjs` не нужен. Создавайте его только если хотите выбрать конкретный публичный профиль или добавить локальные overrides.
 
 **Для React-проектов:**
 
@@ -61,6 +89,8 @@ export default [...strictConfig];
 
 ### Настройка Prettier
 
+CLI может запускать Prettier без project config. Добавляйте Prettier config только для editor integration или прямого использования `prettier`:
+
 Создайте файл `.prettierrc.js`:
 
 ```js
@@ -75,38 +105,21 @@ module.exports = require('@ytdev/linter/prettier');
 }
 ```
 
-### Добавьте скрипты
+### Настройка Husky в consumer project
 
-Добавьте в ваш `package.json`:
-
-```json
-{
-  "scripts": {
-    "lint": "eslint .",
-    "fix": "ytdev-linter fix",
-    "format": "ytdev-linter format",
-    "format:check": "ytdev-linter format --check"
-  }
-}
-```
-
-`fix` запускает ESLint autofix с default non-Sonar config, затем Prettier. `format` запускает только Prettier. Sonar profiles остаются opt-in и не входят в default fix flow.
-
-### Consumer Husky setup
-
-Pre-commit hooks are opt-in and are never installed during package installation. To add the managed hook block to the current Git project:
+Pre-commit hooks включаются только явно и никогда не устанавливаются во время package installation. Чтобы добавить managed hook block в текущий Git project:
 
 ```bash
 npx ytdev-linter husky enable
 ```
 
-To remove only the managed block and keep any custom hook content:
+Чтобы удалить только managed block и сохранить пользовательское содержимое hook:
 
 ```bash
 npx ytdev-linter husky disable
 ```
 
-The generated block is marked with `# @ytdev/linter begin` and `# @ytdev/linter end`. It runs the local ESLint binary with `npx --no-install`, so it does not download packages during commit.
+Generated block помечен строками `# @ytdev/linter begin` и `# @ytdev/linter end`. Он запускает `npx --no-install ytdev-linter lint`, поэтому использует тот же zero-config fallback и не скачивает пакеты во время commit.
 
 ## Доступные конфигурации
 

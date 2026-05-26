@@ -1,7 +1,7 @@
 # ROADMAP: @ytdev/linter release readiness
 
 Этот документ - рабочий план для будущих агентов перед переизданием пакета как `@ytdev/linter`.
-Текущая итерация меняет только `ROADMAP.md`: исходники, конфиги, lockfile, документация и package metadata должны оставаться без изменений, пока отдельная фаза явно не будет взята в работу.
+Каждую фазу выполнять отдельно, не смешивая unrelated изменения и не запуская реальный `npm publish` без явного разрешения пользователя.
 
 ## Current Audit Snapshot
 
@@ -11,7 +11,7 @@
 
 Текущий проект: frontend tooling npm package с ESLint profiles, Prettier config, Sonar catalog и локальной contributor-инфраструктурой.
 
-Текущее package name: `@ytvee-dev/eslint-config-react`.
+Текущее package name: `@ytdev/linter`.
 
 Целевое package name для будущей публикации: `@ytdev/linter`.
 
@@ -23,15 +23,17 @@ Package manager policy: временно сохраняются оба lockfile,
 
 Главный размер tarball: не документация, а `configs/sonar-catalog.generated.json`, примерно 828.5 kB. Если размер пакета станет проблемой, оптимизировать нужно public export/generated catalog policy, а не repo docs.
 
-Husky: `.husky/pre-commit` сейчас является repo-local hook для разработки текущего пакета. Consumer-project Husky setup в published package не реализован и не должен включаться через lifecycle scripts.
+One-command install status: основной happy path - `npm install -D @ytdev/linter`, затем `npx ytdev-linter lint`, `npx ytdev-linter fix`, `npx ytdev-linter format` или `npx ytdev-linter format --check`. CLI использует consumer `eslint.config.*`, если он есть; иначе fallback идёт на package default non-Sonar config. `npx eslint` без config не является обязательным happy path.
 
-TypeScript consumer risk: `configs/base.mjs` вычисляет `tsconfigRootDir` от директории пакета. В установленном consumer project это может указывать внутрь `node_modules`, а не в корень consumer repo.
+Husky: `.husky/pre-commit` сейчас является repo-local hook для разработки текущего пакета. Consumer-project Husky setup должен оставаться explicit CLI flow и не должен включаться через lifecycle scripts.
+
+TypeScript consumer status: `configs/base.mjs` должен использовать `process.cwd()` для `tsconfigRootDir`, чтобы installed package работал из корня consumer project, а не искал `tsconfig.json` внутри `node_modules/@ytdev/linter`. Это считается fixed behavior, но должно проверяться clean fixtures перед release.
 
 Rule duplication audit: в профилях обнаружены повторные объявления `for-direction`, `no-var`, `prefer-const`, `@typescript-eslint/no-floating-promises`, `@typescript-eslint/no-unused-vars`. В `strict` дополнительно повторяются `no-restricted-syntax` и `@typescript-eslint/no-explicit-any`. Часть повторов может быть intentional override, но это нужно доказать и зафиксировать.
 
-Dependency audit snapshot: `npm audit --omit=dev` ранее показывал 5 vulnerabilities через transitive deps: `ajv`, `brace-expansion`, `flatted`, `minimatch`, `picomatch`. Нельзя слепо применять `npm audit fix`; нужна controlled upgrade/removal strategy.
+Dependency audit snapshot: после controlled updates `npm audit --omit=dev` должен оставаться clean. Нельзя слепо применять `npm audit fix`; будущие dependency updates должны сохранять controlled upgrade/removal strategy.
 
-Formatter risk: `eslint-plugin-prettier` и `eslint-config-prettier` нужно пересмотреть после разделения linting и formatting. `eslint-plugin-prettier` особенно подозрителен как runtime dependency, если Prettier будет отдельным CLI step.
+Formatter status: formatting separated from semantic linting. `eslint-plugin-prettier` не должен возвращаться в runtime dependency surface; `eslint-config-prettier` остаётся только как conflict suppressor, а Prettier запускается отдельным CLI step.
 
 Dependency ownership rule: React, a11y, hooks, TypeScript ESLint и SonarJS плагины не переписывать внутрь проекта без отдельного технического обоснования. Переносить в локальный код только маленькие и контролируемые функции, где поддержка локальной реализации безопаснее зависимости.
 
@@ -287,9 +289,9 @@ Package install сам не меняет consumer filesystem.
 
 ### Dependency Decisions To Evaluate
 
-`eslint-plugin-prettier`: вероятный кандидат на удаление после formatter separation.
+`eslint-plugin-prettier`: должен оставаться удалённым после formatter separation; не возвращать без отдельного rationale, потому что formatting не должен становиться ESLint rule error.
 
-`eslint-config-prettier`: оставить только если нужен как audited conflict suppressor; иначе заменить локальным минимальным набором отключений после проверки.
+`eslint-config-prettier`: оставить как audited conflict suppressor либо заменить локальным минимальным набором отключений только после проверки.
 
 `husky`: не должен быть runtime dependency для consumers, если CLI пишет hook самостоятельно или даёт instructions.
 
@@ -361,7 +363,7 @@ ESLint проверяет semantic/code-quality rules, Prettier форматир
 
 ### Implementation Notes
 
-`eslint-plugin-prettier/recommended` в base делает formatting частью lint errors. Это нужно удалить или изолировать в отдельный opt-in profile.
+`eslint-plugin-prettier/recommended` в base делает formatting частью lint errors. Он не должен возвращаться в base profile; `eslint-config-prettier` должен оставаться последним config item только для отключения конфликтующих stylistic rules.
 
 Если `eslint-config-prettier` остаётся, он должен использоваться только для отключения formatting-conflicting lint rules.
 
@@ -463,14 +465,14 @@ Validation can be rerun by future agents.
 
 ### Goal
 
-Type-aware linting must work from consumer project root and not depend on package install path.
+Type-aware linting must work from consumer project root and not depend on package install path. Current intended behavior is `tsconfigRootDir = process.cwd()`; future work must preserve and verify this instead of reintroducing package-path resolution.
 
 ### Prompt
 
 ```
-Fix TypeScript parser/projectService behavior for installed consumer projects.
-`tsconfigRootDir` must refer to consumer cwd or be configurable, not to the package directory in `node_modules`.
-Verify JS-only, TS, React TS and missing-tsconfig fixtures.
+Verify and preserve TypeScript parser/projectService behavior for installed consumer projects.
+`tsconfigRootDir` must stay bound to consumer cwd or an explicit consumer option, not to the package directory in `node_modules`.
+Verify JS-only, TS, React TS and missing-tsconfig fixtures through `ytdev-linter lint` without requiring consumer `eslint.config.*`.
 Keep failure messages actionable.
 ```
 
@@ -480,7 +482,9 @@ Keep failure messages actionable.
 
 ### Implementation Notes
 
-Current `new URL('..', import.meta.url).pathname` points to package location.
+Do not restore `new URL('..', import.meta.url).pathname` for `tsconfigRootDir`; it points to package location after install.
+
+The default zero-config path is `npx ytdev-linter lint`, not `npx eslint` without config.
 
 Prefer consumer-controlled config shape if ESLint flat config can import factory function.
 
@@ -501,9 +505,16 @@ npx eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives
 Fixture checks:
 
 ```powershell
-npx eslint src/index.js
-npx eslint src/index.ts
-npx eslint src/App.tsx
+npx --no-install ytdev-linter lint src/index.js
+npx --no-install ytdev-linter lint src/index.ts
+npx --no-install ytdev-linter lint src/App.tsx
+```
+
+Optional raw ESLint check:
+
+```powershell
+Set-Content eslint.config.mjs "import config from '@ytdev/linter';`nexport default config;"
+npx --no-install eslint src/index.js src/index.ts
 ```
 
 ### Acceptance Criteria
@@ -511,6 +522,10 @@ npx eslint src/App.tsx
 Installed package works from consumer cwd.
 
 TS lint does not search for tsconfig inside installed package.
+
+JS and TS fixtures can lint through `ytdev-linter lint` without creating `eslint.config.*`; TS fixtures may provide a normal project `tsconfig.json`.
+
+`npx eslint` without config is not required to work as the one-command happy path.
 
 JS-only consumers have a documented path.
 
@@ -591,9 +606,19 @@ Temporary fixture directories outside package surface, optionally `fixtures/**`,
 
 ### Required Scenarios
 
-JS-only project imports base/default config.
+JS-only project runs `npx --no-install ytdev-linter lint src/index.js` without creating `eslint.config.*`.
 
-TypeScript project imports base or strict config.
+TypeScript project with a normal `tsconfig.json` runs `npx --no-install ytdev-linter lint src/index.ts` without creating `eslint.config.*`.
+
+Consumer can run `npx --no-install ytdev-linter fix src/index.js`; this must use the default non-Sonar ESLint flow and then Prettier.
+
+Consumer can run `npx --no-install ytdev-linter format --check package.json`.
+
+All public exports import from installed package: default, `configs/react`, `configs/strict`, `configs/sonar`, `configs/react-sonar`, `configs/sonar-catalog`, and `prettier`.
+
+Optional explicit config path works: consumer creates `eslint.config.mjs` importing `@ytdev/linter`, then raw `npx --no-install eslint ...` succeeds.
+
+`npx eslint` without consumer config is not required as the package happy path; `npx ytdev-linter lint` is the required zero-config path.
 
 React TypeScript project imports react config.
 
@@ -613,11 +638,13 @@ Consumer can run format and lint separately.
 npm pack --dry-run
 npm pack
 npm install ..\path\to\packed.tgz
-npx eslint .
-npx ytdev-linter --help
-npx ytdev-linter init
-npx ytdev-linter husky enable
-npx ytdev-linter husky disable
+npx --no-install ytdev-linter --help
+npx --no-install ytdev-linter lint src/index.js
+npx --no-install ytdev-linter lint src/index.ts
+npx --no-install ytdev-linter format --check package.json
+npx --no-install ytdev-linter fix src/index.js
+npx --no-install ytdev-linter husky enable
+npx --no-install ytdev-linter husky disable
 ```
 
 ### Acceptance Criteria
@@ -627,6 +654,10 @@ Packed tarball installs in clean consumer project.
 All public exports import from installed package.
 
 CLI executes from consumer cwd.
+
+One-command install makes package functions available through the local `ytdev-linter` binary.
+
+JS and TS fixtures pass through CLI fallback without consumer `eslint.config.*`.
 
 No package script modifies consumer project without explicit CLI command.
 
@@ -696,15 +727,18 @@ Checklist перед настоящей публикацией:
 
 1. Package identity changed to `@ytdev/linter`.
 2. Real publish not run before explicit approval.
-3. Docs remain in repo but not in package tarball.
-4. Generated Sonar catalog package-size decision is explicit.
-5. Husky works only through explicit consumer CLI command.
-6. Runtime dependency surface is minimal and audited.
-7. Known transitive vulnerabilities are fixed or documented with rationale.
-8. Prettier is separated from semantic linting.
-9. Default fix flow does not run Sonar autofix.
-10. Duplicate ESLint rules are removed or allowlisted as intentional overrides.
-11. TypeScript config works from consumer project root.
-12. `sonar` and `react-sonar` semantics are profile-aware and documented.
-13. Packed tarball installs and runs in clean consumer fixtures.
-14. Both `package-lock.json` and `yarn.lock` are synchronized after dependency changes.
+3. One command `npm install -D @ytdev/linter` makes `ytdev-linter` functions available from consumer project.
+4. CLI fallback works for JS and TS fixtures without consumer `eslint.config.*`.
+5. `npx eslint` without config is not treated as the required zero-config happy path.
+6. Docs remain in repo but not in package tarball.
+7. Generated Sonar catalog package-size decision is explicit.
+8. Husky works only through explicit consumer CLI command.
+9. Runtime dependency surface is minimal and audited.
+10. Known transitive vulnerabilities are fixed or documented with rationale.
+11. Prettier is separated from semantic linting.
+12. Default fix flow does not run Sonar autofix.
+13. Duplicate ESLint rules are removed or allowlisted as intentional overrides.
+14. TypeScript config works from consumer project root.
+15. `sonar` and `react-sonar` semantics are profile-aware and documented.
+16. Packed tarball installs and runs in clean consumer fixtures.
+17. Both `package-lock.json` and `yarn.lock` are synchronized after dependency changes.

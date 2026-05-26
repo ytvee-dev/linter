@@ -339,7 +339,7 @@ __metadata:
     eslint-plugin-sonarjs:
       optional: true
   bin:
-    ytdev-linter: ./bin/ytdev-linter.mjs
+    ytdev-linter: bin/ytdev-linter.mjs
   languageName: unknown
   linkType: soft
 

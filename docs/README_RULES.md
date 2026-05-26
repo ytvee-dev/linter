@@ -9,7 +9,7 @@ This document describes all rules actually enabled in `@ytdev/linter`, following
   - [Common Rules @eslint/js](#common-rules-eslintjs-config-recommended)
   - [Best Practices (Airbnb)](#best-practices-airbnb)
   - [Imports](#imports)
-  - [Formatting (Prettier)](#formatting-prettier)
+  - [Prettier Conflict Suppression](#prettier-conflict-suppression)
   - [TypeScript Rules](#typescript-rules-eslint-config-recommendedtypechecked)
   - [Custom TypeScript Rules](#custom-ts-enhancements-on-top-of-recommended)
 - [React Profile](#react-profile-configsreactmjs)
@@ -57,7 +57,7 @@ export default [...reactSonarConfig];
 
 ## Base Profile (JavaScript + TypeScript)
 
-The `eslint.config.mjs` profile combines recommendations from `@eslint/js`, the `typescript-eslint` set in type-checked mode, and additional rules for imports and formatting. All rules in this section apply to `.js/.mjs/.ts/.tsx` files unless otherwise specified.
+The `eslint.config.mjs` profile combines recommendations from `@eslint/js`, the `typescript-eslint` set in type-checked mode, additional import rules, and `eslint-config-prettier` conflict suppression. Formatting is handled by Prettier as a separate CLI step, not as ESLint rule errors. All rules in this section apply to `.js/.mjs/.ts/.tsx` files unless otherwise specified.
 
 ### Common Rules @eslint/js (config `recommended`)
 

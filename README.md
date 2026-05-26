@@ -32,9 +32,37 @@ yarn add -D @ytdev/linter
 pnpm add -D @ytdev/linter
 ```
 
-### Configuration
+The install command does not modify your project files, does not add lifecycle hooks, and does not create an ESLint config automatically. After installation, the package functions are available through the local `ytdev-linter` binary:
 
-Create `eslint.config.mjs` in your project root:
+```bash
+npx ytdev-linter lint
+npx ytdev-linter fix
+npx ytdev-linter format
+npx ytdev-linter format --check
+```
+
+`lint` and `fix` use your local `eslint.config.*` when it exists. If your project has no ESLint flat config, they fall back to this package's default non-Sonar config, so a basic JavaScript/TypeScript frontend project can start with only the install command. TypeScript projects should still have a valid project `tsconfig.json` for type-aware rules.
+
+### Add Scripts
+
+Add to your `package.json` if you want short project scripts:
+
+```json
+{
+  "scripts": {
+    "lint": "ytdev-linter lint",
+    "fix": "ytdev-linter fix",
+    "format": "ytdev-linter format",
+    "format:check": "ytdev-linter format --check"
+  }
+}
+```
+
+`fix` runs ESLint autofix with the default non-Sonar flow and then Prettier. `format` runs only Prettier. Sonar profiles are opt-in and are not part of the default fix flow.
+
+### Optional ESLint Configuration
+
+You do not need `eslint.config.mjs` for the default CLI path. Create it only when you want to choose a specific public profile or add local overrides.
 
 **For React projects:**
 
@@ -78,6 +106,8 @@ export default [...reactSonarConfig];
 
 ### Prettier Configuration
 
+The CLI can run Prettier without a project config. Add a Prettier config only when you want editor integration or direct `prettier` usage:
+
 Create `.prettierrc.js`:
 
 ```js
@@ -91,23 +121,6 @@ Or `.prettierrc.json`:
   "extends": "@ytdev/linter/prettier"
 }
 ```
-
-### Add Scripts
-
-Add to your `package.json`:
-
-```json
-{
-  "scripts": {
-    "lint": "eslint .",
-    "fix": "ytdev-linter fix",
-    "format": "ytdev-linter format",
-    "format:check": "ytdev-linter format --check"
-  }
-}
-```
-
-`fix` runs ESLint autofix with the default non-Sonar config and then Prettier. `format` runs only Prettier. Sonar profiles are opt-in and are not part of the default fix flow.
 
 ### Consumer Husky Setup
 
@@ -123,7 +136,7 @@ To remove only the managed block and keep any custom hook content:
 npx ytdev-linter husky disable
 ```
 
-The generated block is marked with `# @ytdev/linter begin` and `# @ytdev/linter end`. It runs the local ESLint binary with `npx --no-install`, so it does not download packages during commit.
+The generated block is marked with `# @ytdev/linter begin` and `# @ytdev/linter end`. It runs `npx --no-install ytdev-linter lint`, so it reuses the same zero-config fallback and does not download packages during commit.
 
 ## Available Configurations
 

@@ -328,8 +328,8 @@ npm run format:check
 # или записать только форматирование
 npm run format
 
-# Исправить конкретный файл
-npx eslint src/file.ts --fix
+# Исправить конкретный файл через CLI пакета
+npx ytdev-linter fix src/file.ts
 ```
 
 ### Что требует ручного исправления

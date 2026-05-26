@@ -31,6 +31,15 @@
         <div class="content">
             <h1>Как применять профили</h1>
 <p>Этот документ объясняет, как использовать различные профили конфигурации из <code>@ytdev/linter</code> в вашем проекте.</p>
+<h2>Default zero-config CLI path</h2>
+<p>Для стандартной настройки установите пакет и запускайте CLI без создания <code>eslint.config.mjs</code>:</p>
+<div class="code-block"><pre><code>npm install -D @ytdev/linter
+npx ytdev-linter lint
+npx ytdev-linter fix
+npx ytdev-linter format
+npx ytdev-linter format --check
+</code></pre></div>
+<code>ytdev-linter lint</code> и <code>ytdev-linter fix</code> используют project <code>eslint.config.*</code>, если он есть. Если локального ESLint flat config нет, они используют default non-Sonar config из пакета. Прямые imports профилей - advanced path для проектов, которым нужны React, strict, Sonar, React Sonar или custom overrides через raw ESLint.
 <h2>Доступные профили</h2>
 <h3>Базовый профиль</h3>
 <p>Базовый профиль включает фундаментальные правила ESLint, проверку типов TypeScript, управление импортами и отключение конфликтов с Prettier. Форматирование Prettier запускается отдельной командой, а не как ESLint rule.</p>
