@@ -105,6 +105,22 @@ Add to your `package.json`:
 }
 ```
 
+### Consumer Husky Setup
+
+Pre-commit hooks are opt-in and are never installed during package installation. To add the managed hook block to the current Git project:
+
+```bash
+npx ytdev-linter husky enable
+```
+
+To remove only the managed block and keep any custom hook content:
+
+```bash
+npx ytdev-linter husky disable
+```
+
+The generated block is marked with `# @ytdev/linter begin` and `# @ytdev/linter end`. It runs the local ESLint binary with `npx --no-install`, so it does not download packages during commit.
+
 ## Available Configurations
 
 - **Base** (`@ytdev/linter`) - JavaScript/TypeScript with Prettier
