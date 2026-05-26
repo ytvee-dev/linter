@@ -1,5 +1,5 @@
 {
-  "name": "@ytvee-dev/eslint-config-react",
+  "name": "@ytdev/linter",
   "version": "1.0.4",
   "description": "The general ESLint config for projects.",
   "main": "eslint.config.mjs",
@@ -22,7 +22,7 @@
   "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ytvee-dev/eslint-config-react.git"
+    "url": "git+https://github.com/ytvee-dev/linter.git"
   },
   "engines": {
     "node": ">=18"

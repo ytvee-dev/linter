@@ -304,9 +304,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ytvee-dev/eslint-config-react@workspace:.":
+"@ytdev/linter@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@ytvee-dev/eslint-config-react@workspace:."
+  resolution: "@ytdev/linter@workspace:."
   dependencies:
     "@eslint/js": "npm:^9.33.0"
     "@types/node": "npm:^22.9.0"

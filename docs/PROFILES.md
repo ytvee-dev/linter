@@ -1,6 +1,6 @@
 # How to Apply Profiles
 
-This document explains how to use different configuration profiles from `@ytvee-dev/eslint-config-react` in your project.
+This document explains how to use different configuration profiles from `@ytdev/linter` in your project.
 
 ## Available Profiles
 
@@ -20,7 +20,7 @@ The base profile includes fundamental ESLint rules, TypeScript type-checking, im
 **How to use:**
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -38,7 +38,7 @@ The strict profile extends the base profile with additional constraints for larg
 **How to use:**
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 ```
@@ -58,7 +58,7 @@ The React profile adds React-specific linting rules including JSX, hooks, and ac
 **How to use:**
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 ```
@@ -79,12 +79,12 @@ The Sonar profile extends the base profile with generated executable SonarJS rul
 **How to use:**
 
 ```js
-import sonarConfig from '@ytvee-dev/eslint-config-react/configs/sonar';
+import sonarConfig from '@ytdev/linter/configs/sonar';
 
 export default [...sonarConfig];
 ```
 
-The compact metadata catalog is available through `@ytvee-dev/eslint-config-react/configs/sonar-catalog`. It is the canonical runtime metadata catalog in this repository, and `coveredByProfiles` shows which public profiles already execute a mapped rule. Plain `sonar` covers `base` plus generated SonarJS execution; React-only external mappings stay in `react` and `react-sonar`.
+The compact metadata catalog is available through `@ytdev/linter/configs/sonar-catalog`. It is the canonical runtime metadata catalog in this repository, and `coveredByProfiles` shows which public profiles already execute a mapped rule. Plain `sonar` covers `base` plus generated SonarJS execution; React-only external mappings stay in `react` and `react-sonar`.
 
 ### React Sonar Profile
 
@@ -93,7 +93,7 @@ The React Sonar profile extends the React profile with the same generated execut
 **How to use:**
 
 ```js
-import reactSonarConfig from '@ytvee-dev/eslint-config-react/configs/react-sonar';
+import reactSonarConfig from '@ytdev/linter/configs/react-sonar';
 
 export default [...reactSonarConfig];
 ```
@@ -108,7 +108,7 @@ React-specific Sonar equivalents that are already mapped to `react` or `jsx-a11y
 For a standard Node.js or TypeScript project without React:
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -118,7 +118,7 @@ export default [...baseConfig];
 For a React application with standard rules:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 ```
@@ -126,7 +126,7 @@ export default [...reactConfig];
 ### JavaScript/TypeScript Project With SonarJS
 
 ```js
-import sonarConfig from '@ytvee-dev/eslint-config-react/configs/sonar';
+import sonarConfig from '@ytdev/linter/configs/sonar';
 
 export default [...sonarConfig];
 ```
@@ -134,7 +134,7 @@ export default [...sonarConfig];
 ### React Application With SonarJS
 
 ```js
-import reactSonarConfig from '@ytvee-dev/eslint-config-react/configs/react-sonar';
+import reactSonarConfig from '@ytdev/linter/configs/react-sonar';
 
 export default [...reactSonarConfig];
 ```
@@ -144,8 +144,8 @@ export default [...reactSonarConfig];
 For a React application with strict rules enforced:
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import strictConfig from '@ytdev/linter/configs/strict';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [
   ...strictConfig, // includes base rules + strict rules
@@ -160,8 +160,8 @@ Note: When combining strict and React profiles, the order matters. The strict pr
 If you want React rules but not the strict TypeScript rules:
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import baseConfig from '@ytdev/linter';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...baseConfig, ...reactConfig];
 ```
@@ -171,7 +171,7 @@ export default [...baseConfig, ...reactConfig];
 You can add your own rules or override existing ones:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [
   ...reactConfig,
@@ -190,7 +190,7 @@ export default [
 You can apply different rules to specific files or directories:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [
   ...reactConfig,
@@ -219,7 +219,7 @@ If you're migrating an existing codebase, start with the base profile:
 
 ```js
 // Step 1: Start with base profile
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -228,7 +228,7 @@ Once all issues are fixed, move to strict:
 
 ```js
 // Step 2: Enable strict rules
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 ```
@@ -238,7 +238,7 @@ export default [...strictConfig];
 During migration, you can temporarily disable specific rules:
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [
   ...strictConfig,
@@ -262,7 +262,7 @@ If you encounter issues with TypeScript linting, ensure you have a valid `tsconf
 For large projects, you may want to exclude certain directories:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [{ ignores: ['**/build/**', '**/dist/**', '**/.next/**'] }, ...reactConfig];
 ```
@@ -271,12 +271,12 @@ export default [{ ignores: ['**/build/**', '**/dist/**', '**/.next/**'] }, ...re
 
 If you experience conflicts with other ESLint configs or plugins, make sure to:
 
-1. Place `@ytvee-dev/eslint-config-react` configs first
+1. Place `@ytdev/linter` configs first
 2. Add your custom rules last
 3. Use explicit overrides for conflicting rules
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 import someOtherConfig from 'eslint-config-other';
 
 export default [

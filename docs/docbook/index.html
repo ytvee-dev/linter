@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная - @ytvee-dev/eslint-config-react</title>
+    <title>Главная - @ytdev/linter</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="sidebar">
         <div class="logo">
             <h2>ESLint Config</h2>
-            <p>@ytvee-dev/eslint-config-react</p>
+            <p>@ytdev/linter</p>
         </div>
         <nav class="nav">
             <a href="index.html" class="active">Главная</a>
                 <a href="styleguide.html">Стайлгайд</a>
                 <a href="profiles.html">Профили</a>
-                <a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_RULES_RU.md" target="_blank">Правила <span style="font-size: 0.8em;">↗</span></a>
+                <a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md" target="_blank">Правила <span style="font-size: 0.8em;">↗</span></a>
         </nav>
         <div class="lang-switch">
-            <a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/README.md" target="_blank" class="en-link">🇬🇧 English version</a>
+            <a href="https://github.com/ytvee-dev/linter/blob/main/README.md" target="_blank" class="en-link">🇬🇧 English version</a>
         </div>
         <div class="footer-links">
-            <a href="https://github.com/ytvee-dev/eslint-config-react" target="_blank">GitHub</a>
-            <a href="https://www.npmjs.com/package/@ytvee-dev/eslint-config-react" target="_blank">NPM</a>
+            <a href="https://github.com/ytvee-dev/linter" target="_blank">GitHub</a>
+            <a href="https://www.npmjs.com/package/@ytdev/linter" target="_blank">NPM</a>
         </div>
     </div>
     
     <div class="main-content">
         <div class="content">
-            <h1>eslint-config-react</h1>
+            <h1>@ytdev/linter</h1>
+<p>> Release note: <code>@ytdev/linter</code> is the target name for the upcoming package release. Until that release is published, verify usage through a local packed tarball.</p>
 <p><strong>Русская версия</strong> | <a href="./README.md">English</a></p>
 <p>Комплексная конфигурация ESLint для React и TypeScript проектов с интегрированной поддержкой Prettier.</p>
 <h2>Возможности</h2>
@@ -43,38 +44,38 @@
 <h2>Быстрый старт</h2>
 <h3>Установка</h3>
 <div class="code-block"><pre><code># npm
-npm install -D @ytvee-dev/eslint-config-react
+npm install -D @ytdev/linter
 
 # yarn
-yarn add -D @ytvee-dev/eslint-config-react
+yarn add -D @ytdev/linter
 
 # pnpm
-pnpm add -D @ytvee-dev/eslint-config-react
+pnpm add -D @ytdev/linter
 </code></pre></div>
 <h3>Настройка</h3>
 <p>Создайте файл <code>eslint.config.mjs</code> в корне проекта:</p>
 <p><strong>Для React-проектов:</strong></p>
-<div class="code-block"><pre><code>import reactConfig from "@ytvee-dev/eslint-config-react/configs/react";
+<div class="code-block"><pre><code>import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 </code></pre></div>
 <p><strong>Для не-React проектов (TypeScript/JavaScript):</strong></p>
-<div class="code-block"><pre><code>import baseConfig from "@ytvee-dev/eslint-config-react";
+<div class="code-block"><pre><code>import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 </code></pre></div>
 <p><strong>Для проектов со строгими правилами:</strong></p>
-<div class="code-block"><pre><code>import strictConfig from "@ytvee-dev/eslint-config-react/configs/strict";
+<div class="code-block"><pre><code>import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 </code></pre></div>
 <h3>Настройка Prettier</h3>
 <p>Создайте файл <code>.prettierrc.js</code>:</p>
-<div class="code-block"><pre><code>module.exports = require("@ytvee-dev/eslint-config-react/prettier");
+<div class="code-block"><pre><code>module.exports = require('@ytdev/linter/prettier');
 </code></pre></div>
 <p>Или <code>.prettierrc.json</code>:</p>
 <div class="code-block"><pre><code>{
-  "extends": "@ytvee-dev/eslint-config-react/prettier"
+  "extends": "@ytdev/linter/prettier"
 }
 </code></pre></div>
 <h3>Добавьте скрипты</h3>
@@ -87,31 +88,37 @@ export default [...strictConfig];
 }
 </code></pre></div>
 <h2>Доступные конфигурации</h2>
-<ul><li><strong>Base</strong> (<code>@ytvee-dev/eslint-config-react</code>) - JavaScript/TypeScript с Prettier</li>
-<li><strong>React</strong> (<code>@ytvee-dev/eslint-config-react/configs/react</code>) - Base + правила React</li>
-<li><strong>Strict</strong> (<code>@ytvee-dev/eslint-config-react/configs/strict</code>) - React + строгие правила именования и запрет any</li></ul>
+<ul><li><strong>Base</strong> (<code>@ytdev/linter</code>) - JavaScript/TypeScript с Prettier</li>
+<li><strong>React</strong> (<code>@ytdev/linter/configs/react</code>) - Base + правила React</li>
+<li><strong>Strict</strong> (<code>@ytdev/linter/configs/strict</code>) - React + строгие правила именования и запрет any</li></ul>
 <h2>Требования</h2>
 <ul><li>Node.js >= 18</li>
 <li>ESLint >= 9.0.0</li>
 <li>TypeScript >= 5.2.0 (для TypeScript проектов)</li></ul>
 <h2>Документация</h2>
-<p> Полная документация также доступна в папке <code>/docs</code>:</p>
-<ul><li><a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_RULES_RU.md">Полный справочник правил</a> (<a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_RULES.md">EN</a>)</li>
-<li><a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_STYLEGUIDE_RU.md">Обзор стайлгайда</a> (<a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_STYLEGUIDE.md">EN</a>)</li>
-<li><a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/PROFILES_RU.md">Руководство по профилям</a> (<a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/PROFILES.md">EN</a>)</li></ul>
+<p>Полная документация также доступна в папке <code>/docs</code>:</p>
+<ul><li><a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md">Полный справочник правил</a> (<a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES.md">EN</a>)</li>
+<li><a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE_RU.md">Обзор стайлгайда</a> (<a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE.md">EN</a>)</li>
+<li><a href="https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES_RU.md">Руководство по профилям</a> (<a href="https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES.md">EN</a>)</li></ul>
 <h2>Лицензия</h2>
 <p>MIT © <a href="https://github.com/ytvee-dev">YT-Dev</a></p>
 <h2>Ссылки</h2>
-<ul><li><a href="https://www.npmjs.com/package/@ytvee-dev/eslint-config-react">NPM пакет</a></li>
-<li><a href="https://github.com/ytvee-dev/eslint-config-react">GitHub репозиторий</a></li>
-<li><a href="https://github.com/ytvee-dev/eslint-config-react/tree/main/docs">Файлы документации</a></li>
-<li><a href="https://github.com/ytvee-dev/eslint-config-react/issues">Сообщить о проблеме</a></li>
-</ul>
+<ul><li><a href="https://www.npmjs.com/package/@ytdev/linter">NPM пакет</a></li>
+<li><a href="https://github.com/ytvee-dev/linter">GitHub репозиторий</a></li>
+<li><a href="https://github.com/ytvee-dev/linter/tree/main/docs">Файлы документации</a></li>
+<li><a href="https://github.com/ytvee-dev/linter/issues">Сообщить о проблеме</a></li></ul>
+<h2>SonarQube profiles</h2>
+<p>Added opt-in SonarQube integration:</p>
+<ul><li><code>@ytdev/linter/configs/sonar</code> - base profile plus generated executable SonarJS rules.</li>
+<li><code>@ytdev/linter/configs/react-sonar</code> - React profile plus generated executable SonarJS rules and React/a11y equivalents already covered by the React profile.</li>
+<li><code>@ytdev/linter/configs/sonar-catalog</code> - compact metadata catalog for all imported SonarQube frontend rules.</li></ul>
+<code>configs/sonar-catalog.generated.json</code> is the canonical runtime metadata catalog in this repository. A raw <code>sonarqube-frontend-rules.json</code> export is only an optional refresh artifact when it is present. ESLint executes only rules that have a reliable ESLint/SonarJS implementation. CSS and HTML/Web SonarQube rules are kept as metadata-only records, and <code>coveredByProfiles</code> shows which public profiles already execute each mapped rule.
+
         </div>
         
         <footer class="footer">
             <p>
-                <a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/LICENSE" target="_blank">MIT License</a>
+                <a href="https://github.com/ytvee-dev/linter/blob/main/LICENSE" target="_blank">MIT License</a>
             </p>
         </footer>
     </div>

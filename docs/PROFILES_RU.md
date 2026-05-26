@@ -1,6 +1,6 @@
 # Как применять профили
 
-Этот документ объясняет, как использовать различные профили конфигурации из `@ytvee-dev/eslint-config-react` в вашем проекте.
+Этот документ объясняет, как использовать различные профили конфигурации из `@ytdev/linter` в вашем проекте.
 
 ## Доступные профили
 
@@ -20,7 +20,7 @@
 **Как использовать:**
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -38,7 +38,7 @@ export default [...baseConfig];
 **Как использовать:**
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 ```
@@ -58,7 +58,7 @@ React-профиль добавляет правила специфичные д
 **Как использовать:**
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 ```
@@ -67,23 +67,23 @@ export default [...reactConfig];
 
 ### Sonar profiles
 
-Use `@ytvee-dev/eslint-config-react/configs/sonar` for Base + generated executable SonarJS rules.
+Use `@ytdev/linter/configs/sonar` for Base + generated executable SonarJS rules.
 
 ```js
-import sonarConfig from '@ytvee-dev/eslint-config-react/configs/sonar';
+import sonarConfig from '@ytdev/linter/configs/sonar';
 
 export default [...sonarConfig];
 ```
 
-Use `@ytvee-dev/eslint-config-react/configs/react-sonar` for React + generated executable SonarJS rules.
+Use `@ytdev/linter/configs/react-sonar` for React + generated executable SonarJS rules.
 
 ```js
-import reactSonarConfig from '@ytvee-dev/eslint-config-react/configs/react-sonar';
+import reactSonarConfig from '@ytdev/linter/configs/react-sonar';
 
 export default [...reactSonarConfig];
 ```
 
-The metadata catalog is available as `@ytvee-dev/eslint-config-react/configs/sonar-catalog`. It is the canonical runtime metadata catalog in this repository, and `coveredByProfiles` shows which public profiles already execute a mapped rule. Plain `sonar` covers `base` plus generated SonarJS execution; React-only external mappings stay in `react` and `react-sonar`. ESLint executes only reliable JS/TS implementations; CSS and HTML/Web rules are metadata-only.
+The metadata catalog is available as `@ytdev/linter/configs/sonar-catalog`. It is the canonical runtime metadata catalog in this repository, and `coveredByProfiles` shows which public profiles already execute a mapped rule. Plain `sonar` covers `base` plus generated SonarJS execution; React-only external mappings stay in `react` and `react-sonar`. ESLint executes only reliable JS/TS implementations; CSS and HTML/Web rules are metadata-only.
 
 ## Распространённые комбинации
 
@@ -92,7 +92,7 @@ The metadata catalog is available as `@ytvee-dev/eslint-config-react/configs/son
 Для стандартного Node.js или TypeScript проекта без React:
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -102,7 +102,7 @@ export default [...baseConfig];
 Для React-приложения со стандартными правилами:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 ```
@@ -112,8 +112,8 @@ export default [...reactConfig];
 Для React-приложения со строгими правилами:
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import strictConfig from '@ytdev/linter/configs/strict';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [
   ...strictConfig, // включает базовые правила + строгие правила
@@ -128,8 +128,8 @@ export default [
 Если вы хотите правила React, но не строгие правила TypeScript:
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import baseConfig from '@ytdev/linter';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...baseConfig, ...reactConfig];
 ```
@@ -139,7 +139,7 @@ export default [...baseConfig, ...reactConfig];
 Вы можете добавить свои собственные правила или переопределить существующие:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [
   ...reactConfig,
@@ -158,7 +158,7 @@ export default [
 Вы можете применять разные правила к конкретным файлам или директориям:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [
   ...reactConfig,
@@ -187,7 +187,7 @@ export default [
 
 ```js
 // Шаг 1: Начните с базового профиля
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -196,7 +196,7 @@ export default [...baseConfig];
 
 ```js
 // Шаг 2: Включите строгие правила
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 ```
@@ -206,7 +206,7 @@ export default [...strictConfig];
 Во время миграции можно временно отключить конкретные правила:
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [
   ...strictConfig,
@@ -230,7 +230,7 @@ export default [
 Для больших проектов вы можете исключить определённые директории:
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [{ ignores: ['**/build/**', '**/dist/**', '**/.next/**'] }, ...reactConfig];
 ```
@@ -239,12 +239,12 @@ export default [{ ignores: ['**/build/**', '**/dist/**', '**/.next/**'] }, ...re
 
 Если возникают конфликты с другими конфигурациями или плагинами ESLint, убедитесь что:
 
-1. Размещаете конфигурации `@ytvee-dev/eslint-config-react` первыми
+1. Размещаете конфигурации `@ytdev/linter` первыми
 2. Добавляете свои пользовательские правила последними
 3. Используете явные переопределения для конфликтующих правил
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 import someOtherConfig from 'eslint-config-other';
 
 export default [

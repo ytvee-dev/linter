@@ -1,6 +1,6 @@
 # Стайлгайд линтера
 
-Документ суммирует профиль `@ytvee-dev/eslint-config-react` и поясняет, какие правила вы получите из коробки. Полный список с деталями и примерами — в [README_RULES_RU.md](README_RULES_RU.md).
+Документ суммирует профиль `@ytdev/linter` и поясняет, какие правила вы получите из коробки. Полный список с деталями и примерами — в [README_RULES_RU.md](README_RULES_RU.md).
 
 ## Содержание
 
@@ -226,7 +226,7 @@ class User {
 - `@typescript-eslint/no-explicit-any` отключён (для постепенной миграции)
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -240,7 +240,7 @@ export default [...baseConfig];
 - Один публичный тип/класс/enum на файл
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 ```
@@ -272,7 +272,7 @@ export default [...strictConfig];
 - `jsx-a11y/no-static-element-interactions` — роли для статических элементов
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 ```
@@ -282,9 +282,9 @@ export default [...reactConfig];
 Можно комбинировать профили:
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import baseConfig from '@ytdev/linter';
+import strictConfig from '@ytdev/linter/configs/strict';
+import reactConfig from '@ytdev/linter/configs/react';
 
 // Только базовые правила
 export default [...baseConfig];

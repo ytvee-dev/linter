@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Стайлгайд линтера - @ytvee-dev/eslint-config-react</title>
+    <title>Стайлгайд линтера - @ytdev/linter</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="sidebar">
         <div class="logo">
             <h2>ESLint Config</h2>
-            <p>@ytvee-dev/eslint-config-react</p>
+            <p>@ytdev/linter</p>
         </div>
         <nav class="nav">
             <a href="index.html">Главная</a>
                 <a href="styleguide.html" class="active">Стайлгайд</a>
                 <a href="profiles.html">Профили</a>
-                <a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_RULES_RU.md" target="_blank">Правила <span style="font-size: 0.8em;">↗</span></a>
+                <a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md" target="_blank">Правила <span style="font-size: 0.8em;">↗</span></a>
         </nav>
         <div class="lang-switch">
-            <a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_STYLEGUIDE.md" target="_blank" class="en-link">🇬🇧 English version</a>
+            <a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE.md" target="_blank" class="en-link">🇬🇧 English version</a>
         </div>
         <div class="footer-links">
-            <a href="https://github.com/ytvee-dev/eslint-config-react" target="_blank">GitHub</a>
-            <a href="https://www.npmjs.com/package/@ytvee-dev/eslint-config-react" target="_blank">NPM</a>
+            <a href="https://github.com/ytvee-dev/linter" target="_blank">GitHub</a>
+            <a href="https://www.npmjs.com/package/@ytdev/linter" target="_blank">NPM</a>
         </div>
     </div>
     
     <div class="main-content">
         <div class="content">
             <h1>Стайлгайд линтера</h1>
-<p>Документ суммирует профиль <code>@ytvee-dev/eslint-config-react</code> и поясняет, какие правила вы получите из коробки. Полный список с деталями и примерами — в <a href="README_RULES_RU.md">README_RULES_RU.md</a>.</p>
+<p>Документ суммирует профиль <code>@ytdev/linter</code> и поясняет, какие правила вы получите из коробки. Полный список с деталями и примерами — в <a href="README_RULES_RU.md">README_RULES_RU.md</a>.</p>
 <h2>Содержание</h2>
 <ul><li><a href="#базовые-принципы">Базовые принципы</a></li>
 <li><a href="#дополнения-для-typescript">Дополнения для TypeScript</a></li>
@@ -176,7 +176,7 @@ class User {
 <li>Сортировка импортов</li>
 <li>Prettier форматирование</li>
 <li><code>@typescript-eslint/no-explicit-any</code> отключён (для постепенной миграции)</li></ul>
-<div class="code-block"><pre><code>import baseConfig from '@ytvee-dev/eslint-config-react';
+<div class="code-block"><pre><code>import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 </code></pre></div>
@@ -185,7 +185,7 @@ export default [...baseConfig];
 <ul><li>Запрет <code>any</code> (<code>@typescript-eslint/no-explicit-any</code>)</li>
 <li>Соглашение об именовании <code>camelCase</code>/<code>PascalCase</code></li>
 <li>Один публичный тип/класс/enum на файл</li></ul>
-<div class="code-block"><pre><code>import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+<div class="code-block"><pre><code>import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 </code></pre></div>
@@ -207,15 +207,15 @@ export default [...strictConfig];
 <li><code>jsx-a11y/no-autofocus</code> — ограничение autofocus</li>
 <li><code>jsx-a11y/no-noninteractive-element-interactions</code> — события на интерактивных элементах</li>
 <li><code>jsx-a11y/no-static-element-interactions</code> — роли для статических элементов</li></ul>
-<div class="code-block"><pre><code>import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+<div class="code-block"><pre><code>import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 </code></pre></div>
 <h3>Комбинирование</h3>
 <p>Можно комбинировать профили:</p>
-<div class="code-block"><pre><code>import baseConfig from '@ytvee-dev/eslint-config-react';
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+<div class="code-block"><pre><code>import baseConfig from '@ytdev/linter';
+import strictConfig from '@ytdev/linter/configs/strict';
+import reactConfig from '@ytdev/linter/configs/react';
 
 // Только базовые правила
 export default [...baseConfig];
@@ -286,13 +286,12 @@ npx eslint src/file.ts --fix
 <h4>Опциональный запрет any</h4>
 <p>В базовом профиле <code>any</code> разрешён для постепенной миграции. Включается в строгом профиле.</p>
 <h2>Лицензия</h2>
-<p>Пакет распространяется по лицензии MIT. Полный текст доступен в файле <a href="../LICENSE">LICENSE</a>.</p>
-
+<p>Пакет распространяется по лицензии MIT. Полный текст доступен в файле <a href="../LICENSE">LICENSE</a>. </p>
         </div>
         
         <footer class="footer">
             <p>
-                <a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/LICENSE" target="_blank">MIT License</a>
+                <a href="https://github.com/ytvee-dev/linter/blob/main/LICENSE" target="_blank">MIT License</a>
             </p>
         </footer>
     </div>

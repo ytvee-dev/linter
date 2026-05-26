@@ -1,6 +1,6 @@
 # Linter Rules Used in the Project
 
-This document describes all rules actually enabled in `@ytvee-dev/eslint-config-react`, following the style of the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript). Below are listed profiles, constraints, and ignored files with examples for each rule.
+This document describes all rules actually enabled in `@ytdev/linter`, following the style of the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript). Below are listed profiles, constraints, and ignored files with examples for each rule.
 
 ## Table of Contents
 
@@ -47,8 +47,8 @@ The executable Sonar profile enables 251 unique `sonarjs/*` rules. Rules that re
 Usage:
 
 ```js
-import sonarConfig from '@ytvee-dev/eslint-config-react/configs/sonar';
-import reactSonarConfig from '@ytvee-dev/eslint-config-react/configs/react-sonar';
+import sonarConfig from '@ytdev/linter/configs/sonar';
+import reactSonarConfig from '@ytdev/linter/configs/react-sonar';
 
 export default [...reactSonarConfig];
 ```

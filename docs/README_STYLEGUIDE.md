@@ -1,6 +1,6 @@
 # Linter Style Guide
 
-This document summarizes the `@ytvee-dev/eslint-config-react` profile and explains which rules you get out of the box. For the complete list with details and examples, see [README_RULES.md](README_RULES.md).
+This document summarizes the `@ytdev/linter` profile and explains which rules you get out of the box. For the complete list with details and examples, see [README_RULES.md](README_RULES.md).
 
 ## Table of Contents
 
@@ -226,7 +226,7 @@ Includes all rules listed above:
 - `@typescript-eslint/no-explicit-any` disabled (for gradual migration)
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -240,7 +240,7 @@ Base profile plus additional constraints:
 - One public type/class/enum per file
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 ```
@@ -272,7 +272,7 @@ Base profile plus React/JSX/a11y rules:
 - `jsx-a11y/no-static-element-interactions` - roles for static elements
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 ```
@@ -282,9 +282,9 @@ export default [...reactConfig];
 You can combine profiles:
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import baseConfig from '@ytdev/linter';
+import strictConfig from '@ytdev/linter/configs/strict';
+import reactConfig from '@ytdev/linter/configs/react';
 
 // Base rules only
 export default [...baseConfig];

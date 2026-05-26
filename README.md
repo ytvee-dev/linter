@@ -1,8 +1,10 @@
-# eslint-config-react
+# @ytdev/linter
 
 [Русская версия](./README_RU.md) | **English**
 
 A comprehensive ESLint configuration for React and TypeScript projects with integrated Prettier support.
+
+> Release note: `@ytdev/linter` is the target name for the upcoming package release. Until that release is published, verify usage through a local packed tarball.
 
 ## Features
 
@@ -21,13 +23,13 @@ A comprehensive ESLint configuration for React and TypeScript projects with inte
 
 ```bash
 # npm
-npm install -D @ytvee-dev/eslint-config-react
+npm install -D @ytdev/linter
 
 # yarn
-yarn add -D @ytvee-dev/eslint-config-react
+yarn add -D @ytdev/linter
 
 # pnpm
-pnpm add -D @ytvee-dev/eslint-config-react
+pnpm add -D @ytdev/linter
 ```
 
 ### Configuration
@@ -37,7 +39,7 @@ Create `eslint.config.mjs` in your project root:
 **For React projects:**
 
 ```js
-import reactConfig from '@ytvee-dev/eslint-config-react/configs/react';
+import reactConfig from '@ytdev/linter/configs/react';
 
 export default [...reactConfig];
 ```
@@ -45,7 +47,7 @@ export default [...reactConfig];
 **For non-React projects (TypeScript/JavaScript):**
 
 ```js
-import baseConfig from '@ytvee-dev/eslint-config-react';
+import baseConfig from '@ytdev/linter';
 
 export default [...baseConfig];
 ```
@@ -53,7 +55,7 @@ export default [...baseConfig];
 **For projects with strict rules:**
 
 ```js
-import strictConfig from '@ytvee-dev/eslint-config-react/configs/strict';
+import strictConfig from '@ytdev/linter/configs/strict';
 
 export default [...strictConfig];
 ```
@@ -61,7 +63,7 @@ export default [...strictConfig];
 **For projects with SonarJS checks:**
 
 ```js
-import sonarConfig from '@ytvee-dev/eslint-config-react/configs/sonar';
+import sonarConfig from '@ytdev/linter/configs/sonar';
 
 export default [...sonarConfig];
 ```
@@ -69,7 +71,7 @@ export default [...sonarConfig];
 **For React projects with SonarJS checks:**
 
 ```js
-import reactSonarConfig from '@ytvee-dev/eslint-config-react/configs/react-sonar';
+import reactSonarConfig from '@ytdev/linter/configs/react-sonar';
 
 export default [...reactSonarConfig];
 ```
@@ -79,14 +81,14 @@ export default [...reactSonarConfig];
 Create `.prettierrc.js`:
 
 ```js
-module.exports = require('@ytvee-dev/eslint-config-react/prettier');
+module.exports = require('@ytdev/linter/prettier');
 ```
 
 Or `.prettierrc.json`:
 
 ```json
 {
-  "extends": "@ytvee-dev/eslint-config-react/prettier"
+  "extends": "@ytdev/linter/prettier"
 }
 ```
 
@@ -105,12 +107,12 @@ Add to your `package.json`:
 
 ## Available Configurations
 
-- **Base** (`@ytvee-dev/eslint-config-react`) - JavaScript/TypeScript with Prettier
-- **React** (`@ytvee-dev/eslint-config-react/configs/react`) - Base + React rules
-- **Strict** (`@ytvee-dev/eslint-config-react/configs/strict`) - React + strict naming and no-any rules
-- **Sonar** (`@ytvee-dev/eslint-config-react/configs/sonar`) - Base + generated SonarJS executable rules
-- **React Sonar** (`@ytvee-dev/eslint-config-react/configs/react-sonar`) - React + generated SonarJS executable rules plus React/a11y equivalents already covered by the React profile
-- **Sonar catalog** (`@ytvee-dev/eslint-config-react/configs/sonar-catalog`) - compact metadata coverage for all imported SonarQube frontend rules
+- **Base** (`@ytdev/linter`) - JavaScript/TypeScript with Prettier
+- **React** (`@ytdev/linter/configs/react`) - Base + React rules
+- **Strict** (`@ytdev/linter/configs/strict`) - React + strict naming and no-any rules
+- **Sonar** (`@ytdev/linter/configs/sonar`) - Base + generated SonarJS executable rules
+- **React Sonar** (`@ytdev/linter/configs/react-sonar`) - React + generated SonarJS executable rules plus React/a11y equivalents already covered by the React profile
+- **Sonar catalog** (`@ytdev/linter/configs/sonar-catalog`) - compact metadata coverage for all imported SonarQube frontend rules
 
 ## SonarQube Coverage
 
@@ -126,13 +128,13 @@ Only rules with a reliable ESLint implementation are executable. CSS and HTML/We
 
 ## Documentation
 
-**Interactive Documentation:** [ytvee-dev.github.io/eslint-config-react](https://ytvee-dev.github.io/eslint-config-react/)
+**Interactive Documentation:** [ytvee-dev.github.io/linter](https://ytvee-dev.github.io/linter/)
 
 Full documentation is also available in the `/docs` folder:
 
-- [Complete rules reference](https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_RULES.md) ([RU](https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_RULES_RU.md))
-- [Style guide overview](https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_STYLEGUIDE.md) ([RU](https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_STYLEGUIDE_RU.md))
-- [Profile usage guide](https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/PROFILES.md) ([RU](https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/PROFILES_RU.md))
+- [Complete rules reference](https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES.md) ([RU](https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md))
+- [Style guide overview](https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE.md) ([RU](https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE_RU.md))
+- [Profile usage guide](https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES.md) ([RU](https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES_RU.md))
 
 ## License
 
@@ -140,7 +142,7 @@ MIT © [YT-Dev](https://github.com/ytvee-dev)
 
 ## Links
 
-- [NPM Package](https://www.npmjs.com/package/@ytvee-dev/eslint-config-react)
-- [GitHub Repository](https://github.com/ytvee-dev/eslint-config-react)
-- [Documentation Files](https://github.com/ytvee-dev/eslint-config-react/tree/main/docs)
-- [Report Issues](https://github.com/ytvee-dev/eslint-config-react/issues)
+- [NPM Package](https://www.npmjs.com/package/@ytdev/linter)
+- [GitHub Repository](https://github.com/ytvee-dev/linter)
+- [Documentation Files](https://github.com/ytvee-dev/linter/tree/main/docs)
+- [Report Issues](https://github.com/ytvee-dev/linter/issues)

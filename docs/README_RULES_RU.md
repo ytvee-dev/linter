@@ -1,6 +1,6 @@
 # Правила линтера, используемые в проекте
 
-Документ описывает все правила, которые реально включены в `@ytvee-dev/eslint-config-react`, в стилистике [Airbnb JavaScript Style Guide](https://leonidlebedev.github.io/javascript-airbnb). Ниже перечислены профили, ограничения и игнорируемые файлы с примерами для каждого правила.
+Документ описывает все правила, которые реально включены в `@ytdev/linter`, в стилистике [Airbnb JavaScript Style Guide](https://leonidlebedev.github.io/javascript-airbnb). Ниже перечислены профили, ограничения и игнорируемые файлы с примерами для каждого правила.
 
 ## Содержание
 
@@ -45,7 +45,7 @@ Coverage summary:
 The executable Sonar profile enables 251 unique `sonarjs/*` rules. Rules that require type information are scoped to TypeScript files. CSS and HTML/Web SonarQube rules are metadata-only until a supported analyzer path is added. React-specific mappings such as JSX and a11y equivalents are reflected in `coveredByProfiles` and are available through `react` and `react-sonar`, not plain `sonar`.
 
 ```js
-import reactSonarConfig from '@ytvee-dev/eslint-config-react/configs/react-sonar';
+import reactSonarConfig from '@ytdev/linter/configs/react-sonar';
 
 export default [...reactSonarConfig];
 ```

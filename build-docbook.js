@@ -62,7 +62,7 @@ function createNavigation(currentPage) {
     .join('\n                ');
 
   // Add external link to rules
-  const rulesLink = `<a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_RULES_RU.md" target="_blank">Правила <span style="font-size: 0.8em;">↗</span></a>`;
+  const rulesLink = `<a href="https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md" target="_blank">Правила <span style="font-size: 0.8em;">↗</span></a>`;
 
   return `${nav}\n                ${rulesLink}`;
 }
@@ -75,14 +75,14 @@ function createHTMLPage(title, content, pageId, enLink) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title} - @ytvee-dev/eslint-config-react</title>
+    <title>${title} - @ytdev/linter</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="sidebar">
         <div class="logo">
             <h2>ESLint Config</h2>
-            <p>@ytvee-dev/eslint-config-react</p>
+            <p>@ytdev/linter</p>
         </div>
         <nav class="nav">
             ${navigation}
@@ -91,8 +91,8 @@ function createHTMLPage(title, content, pageId, enLink) {
             <a href="${enLink}" target="_blank" class="en-link">🇬🇧 English version</a>
         </div>
         <div class="footer-links">
-            <a href="https://github.com/ytvee-dev/eslint-config-react" target="_blank">GitHub</a>
-            <a href="https://www.npmjs.com/package/@ytvee-dev/eslint-config-react" target="_blank">NPM</a>
+            <a href="https://github.com/ytvee-dev/linter" target="_blank">GitHub</a>
+            <a href="https://www.npmjs.com/package/@ytdev/linter" target="_blank">NPM</a>
         </div>
     </div>
     
@@ -103,7 +103,7 @@ function createHTMLPage(title, content, pageId, enLink) {
         
         <footer class="footer">
             <p>
-                <a href="https://github.com/ytvee-dev/eslint-config-react/blob/main/LICENSE" target="_blank">MIT License</a>
+                <a href="https://github.com/ytvee-dev/linter/blob/main/LICENSE" target="_blank">MIT License</a>
             </p>
         </footer>
     </div>
@@ -117,21 +117,21 @@ const docs = [
     output: 'docbook/index.html',
     title: 'Главная',
     pageId: 'index',
-    enLink: 'https://github.com/ytvee-dev/eslint-config-react/blob/main/README.md',
+    enLink: 'https://github.com/ytvee-dev/linter/blob/main/README.md',
   },
   {
     input: 'README_STYLEGUIDE_RU.md',
     output: 'docbook/styleguide.html',
     title: 'Стайлгайд линтера',
     pageId: 'styleguide',
-    enLink: 'https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/README_STYLEGUIDE.md',
+    enLink: 'https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE.md',
   },
   {
     input: 'PROFILES_RU.md',
     output: 'docbook/profiles.html',
     title: 'Руководство по профилям',
     pageId: 'profiles',
-    enLink: 'https://github.com/ytvee-dev/eslint-config-react/blob/main/docs/PROFILES.md',
+    enLink: 'https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES.md',
   },
 ];
 
