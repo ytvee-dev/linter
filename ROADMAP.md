@@ -1,430 +1,710 @@
-# Roadmap: доведение eslint/prettier/husky npm-пакета до ТЗ
-
-Этот roadmap предназначен для поэтапной работы разными агентами. Код менять только в рамках конкретного этапа. Документацию, кроме этого `ROADMAP.md`, пока не трогать.
-
-## Роль и текущий аудит
-
-Роль для проекта: senior JavaScript tooling engineer, специализация ESLint flat config, Prettier, npm packages, Husky, React/TypeScript tooling.
-
-Проект: npm-пакет для frontend/React проектов. Он должен поставлять ESLint profiles, Prettier formatter config, CLI-команды, управляемый Husky pre-commit и SonarQube/SonarJS rule coverage.
-
-Текущее состояние по аудиту:
-
-- `SONAR_ROADMAP.md` корректно описывает уже выполненную Sonar-интеграцию, но не покрывает полное исходное ТЗ.
-- Sonar catalog валидируется: 1095 raw rules, 1095 generated records, 251 executable unique `sonarjs/*` rules, duplicate executable rule ids отсутствуют.
-- `package.json` не содержит `bin`, поэтому нет CLI-команд для consumer-проектов.
-- Команды `lint`, `lint:fix`, `format`, `format --check`, `fix`, `profile`, `husky enable`, `husky disable` как CLI пакета отсутствуют.
-- `.husky/pre-commit` сейчас локальный для этого репозитория (`yarn lint`), а не управляемый hook в проекте-потребителе.
-- Prettier сейчас включен в base lint через `eslint-plugin-prettier/recommended`; по ТЗ formatter должен быть отдельным, а fix должен чинить простые style/fixable ошибки без Sonar.
-- `configs/base.mjs` задает `tsconfigRootDir` от директории пакета. В установленном пакете это риск для TypeScript linting в consumer project.
-- Public exports есть для base/default, react, strict, sonar, react-sonar, prettier, но нет `strict-react` и CLI entrypoint.
-- Default profile сейчас `eslint.config.mjs` -> base. Нужно явно подтвердить или изменить на React default, так как основной target - React проекты.
-- Зависимости не все latest stable по `npm outdated --long`: `eslint`, `@eslint/js`, `prettier`, `typescript-eslint`, `eslint-config-prettier`, `eslint-plugin-react-hooks`, `globals`, `typescript`, `@types/node` и др. требуют отдельного решения.
-- Есть смешение package managers: `packageManager` указывает Yarn 4, есть `yarn.lock`, но активно обновлен `package-lock.json`. Нужно выбрать политику.
-
-## Глобальные правила для агентов
-
-- Не удалять существующие профили: base/default, react, strict, sonar, react-sonar.
-- Не добавлять новые зависимости без отдельной проверки необходимости.
-- Не трогать human-facing docs, кроме `ROADMAP.md`, пока не будет отдельной задачи.
-- Не включать Sonar rules в formatter или non-Sonar fix command.
-- Не дублировать ESLint rules: один executable ESLint rule id должен включаться один раз в конкретном итоговом профиле.
-- Любой этап завершать проверкой конкретных файлов, указанных в этом roadmap.
-- Если `sonarqube-frontend-rules.json` позже удаляется, generator/validator должны работать от нового source artifact или generated catalog должен стать source of truth.
-
-## Phase 1: Package surface, package manager, publish reliability
-
-Цель: пакет должен устанавливаться как легкий npm-пакет без lifecycle-сбоев и с понятной lock/package-manager политикой.
-
-Файлы для проверки:
-
-- `package.json`
-  - Проверить `name`, `main`, `exports`, `files`, `engines`, `packageManager`, `dependencies`, `peerDependencies`, `peerDependenciesMeta`, `devDependencies`, `scripts`.
-  - Проверить, что publish surface содержит только runtime/public files: `configs/**`, `eslint.config.mjs`, `prettier.js`, CLI files, generated Sonar catalog/profile при необходимости.
-  - Проверить, что `prepare` не запускает Husky при `npm pack` и install consumer-проекта.
-  - Проверить, что `bin` появится только после реализации CLI.
-- `package-lock.json` и `yarn.lock`
-  - Выбрать один основной lock flow или явно описать mixed policy.
-  - Если основной пакетный менеджер Yarn 4, не обновлять `package-lock.json` как source of truth.
-  - Если основной npm, убрать/пересогласовать Yarn metadata.
-- `.npmignore` или `files` в `package.json`
-  - Проверить, что raw `sonarqube-frontend-rules.json` не попадает в npm tarball, если он остается только source artifact.
-  - Проверить, что `SONAR_ROADMAP.md`, `ROADMAP.md`, docs, generated docbook и local artifacts не попадают в runtime package.
-- `.gitattributes`, `.prettierignore`
-  - Проверить LF для `.mjs`.
-  - Проверить, что generated/raw-heavy artifacts не ломают formatter checks.
-
-Команды проверки:
-
-- `npm pack --dry-run`
-- `node -e "const pkg=require('./package.json'); for (const [k,v] of Object.entries(pkg.exports)) { const p=typeof v==='string'?v:v.import||v.default; console.log(k,p,require('fs').existsSync(p)); }"`
-- `git status --short`
-
-Acceptance:
-
-- `npm pack --dry-run` проходит на Windows без escalation/lifecycle failure.
-- Tarball содержит только ожидаемые runtime/public files.
-- Lock/package-manager политика однозначна.
-
-## Phase 2: CLI для consumer-проектов
-
-Цель: после установки пакета пользователь запускает команды через `npx`, `npm exec`, `yarn` или `pnpm`.
-
-Файлы для проверки:
-
-- `package.json`
-  - Добавить `bin`, например `eslint-config-react` или scoped-friendly CLI name.
-  - Добавить package scripts только для разработки самого пакета, не путать их с public CLI.
-- Новый CLI entrypoint, например `bin/eslint-config-react.mjs`
-  - Проверить shebang `#!/usr/bin/env node`.
-  - Проверить Windows-compatible execution.
-  - Проверить help output и exit codes.
-  - Проверить, что команды выполняются из `process.cwd()` consumer-проекта, а не из директории пакета.
-- CLI command modules, если будут выделены
-  - `lint`: запускает ESLint с выбранным профилем.
-  - `lint --fix`: запускает ESLint fix без Sonar profile по умолчанию.
-  - `format`: запускает Prettier `--write`.
-  - `format --check`: запускает Prettier `--check`.
-  - `fix`: запускает ESLint `--fix` для non-Sonar fixable rules, затем Prettier `--write`.
-  - `profile get/set/list`: переключение профиля в consumer config.
-  - `init`: создает минимальные config-файлы без перезаписи пользовательских изменений.
-  - `husky enable/disable`: управляет pre-commit в consumer-проекте.
-
-Команды проверки:
-
-- `node <cli-entry> --help`
-- `node <cli-entry> lint --help`
-- `node <cli-entry> profile list`
-- В sandbox project: `npx <cli-name> lint`, `npx <cli-name> fix`, `npx <cli-name> format --check`
-
-Acceptance:
-
-- CLI имеет стабильные exit codes.
-- CLI не требует глобального ESLint.
-- CLI умеет выбрать профиль командой.
-- CLI работает из корня consumer-проекта.
-
-## Phase 3: Profiles and public API
-
-Цель: все профили сохраняются, понятны и не конфликтуют.
-
-Файлы для проверки:
-
-- `eslint.config.mjs`
-  - Проверить default profile. Сейчас default -> base. Нужно принять решение: оставить base или сделать React default.
-  - Если default меняется, это breaking change и требует semver major или отдельного export.
-- `configs/base.mjs`
-  - Проверить browser/node globals. Для frontend package вероятно нужен frontend/browser default и отдельный node override для scripts.
-  - Проверить `tsconfigRootDir`; в consumer-проекте он не должен указывать на `node_modules/@ytvee-dev/eslint-config-react`.
-  - Проверить, что Prettier не встроен в semantic lint, если Phase 4 будет отделять formatter.
-  - Проверить, что base не содержит React-only rules.
-- `configs/react.mjs`
-  - Проверить, что React profile = base + React/JSX/hooks/a11y.
-  - Проверить JSX parser options.
-  - Проверить React version detect.
-- `configs/strict.mjs`
-  - Проверить, что strict не заявлен как React strict, если он не включает React.
-  - Проверить `no-explicit-any`, naming convention, one-module rule.
-- Новый `configs/strict-react.mjs`
-  - Добавить только если нужен public strict React profile.
-  - Должен быть composition: strict + React без дублирования base.
-- `configs/sonar.mjs`
-  - Проверить base + Sonar executable rules.
-  - Проверить, что Sonar rules не дублируют existing external-eslint rules.
-- `configs/react-sonar.mjs`
-  - Проверить React + Sonar executable rules.
-  - Проверить отсутствие `Cannot redefine plugin`.
-- `package.json`
-  - Проверить exports для всех физических профилей.
-  - Проверить backward compatibility существующих exports.
-
-Команды проверки:
-
-- `node -e "import('./eslint.config.mjs')"`
-- `node -e "import('./configs/react.mjs')"`
-- `node -e "import('./configs/strict.mjs')"`
-- `node -e "import('./configs/sonar.mjs')"`
-- `node -e "import('./configs/react-sonar.mjs')"`
-- После добавления: `node -e "import('./configs/strict-react.mjs')"`
-
-Acceptance:
-
-- Все профили импортируются.
-- Default profile явно выбран и описан в `ROADMAP.md` или release plan.
-- Профили не дублируют один и тот же plugin/rule конфликтующим способом.
-
-## Phase 4: Formatter separation and safe fix flow
-
-Цель: Prettier форматирует, ESLint проверяет код, fix чинит простые fixable ошибки без Sonar.
-
-Файлы для проверки:
-
-- `prettier.js`
-  - Проверить, что это отдельный public formatter config.
-  - Проверить `endOfLine: 'lf'`, `singleQuote`, `semi`, `printWidth`, `trailingComma`.
-- `.prettierrc.js`
-  - Проверить, что локальный config соответствует public `prettier.js` или импортирует его.
-- `configs/base.mjs`
-  - Убрать или изолировать `eslint-plugin-prettier/recommended`, если formatter должен быть отдельным.
-  - Проверить, что semantic lint не падает только из-за formatting.
-- `package.json`
-  - Проверить необходимость `eslint-plugin-prettier` и `eslint-config-prettier`.
-  - Если Prettier отделен полностью, `eslint-plugin-prettier` может стать лишней зависимостью.
-- CLI files
-  - `format` должен запускать только Prettier.
-  - `fix` должен запускать ESLint `--fix` на non-Sonar profile, затем Prettier.
-  - `fix` не должен включать `configs/sonar` или `configs/react-sonar` по умолчанию.
-
-Команды проверки:
-
-- В fixture: создать файл с простыми style нарушениями.
-- `npx <cli-name> format --check` должен падать только на formatting.
-- `npx <cli-name> format` должен исправлять formatting.
-- `npx <cli-name> fix` должен исправлять ESLint fixable + Prettier.
-- `npx <cli-name> fix --profile react-sonar` должен либо запрещать Sonar autofix, либо документированно запускать Sonar только как check без `--fix`.
-
-Acceptance:
-
-- Formatter не запускает Sonar.
-- Fix не выполняет Sonar autofix.
-- Lint и format можно запускать отдельно.
-
-## Phase 5: Husky enable/disable for consumer projects
-
-Цель: pre-commit hook по умолчанию выключен, consumer включает/выключает его командой.
-
-Файлы для проверки:
-
-- `.husky/pre-commit`
-  - Оставить только как local repo hook или исключить из publish/runtime.
-  - Не считать его consumer-механизмом.
-- `package.json`
-  - Не использовать `prepare` для автоустановки Husky в consumer-проекте.
-  - Проверить, что `husky` нужен как dependency/devDependency только если CLI реально управляет hook.
-- CLI Husky module
-  - `husky enable` создает/обновляет `.husky/pre-commit` в consumer project.
-  - `husky disable` удаляет только managed block.
-  - Hook содержит marker comments:
-    - `# @ytvee-dev/eslint-config-react begin`
-    - `# @ytvee-dev/eslint-config-react end`
-  - Повторный `enable` идемпотентен.
-  - `disable` не удаляет пользовательские команды.
-- Fixture `.husky/pre-commit`
-  - Проверить пустой hook.
-  - Проверить hook с пользовательским содержимым.
-  - Проверить hook уже с managed block.
-
-Команды проверки:
-
-- `npx <cli-name> husky enable`
-- `npx <cli-name> husky enable` повторно
-- `npx <cli-name> husky disable`
-- Проверить diff `.husky/pre-commit` после каждой команды.
-
-Acceptance:
-
-- Pre-hook default off.
-- Enable/disable безопасны и идемпотентны.
-- Consumer не получает hook без явной команды.
-
-## Phase 6: SonarQube rules verification and deduplication
-
-Цель: правила из SonarQube присутствуют, но не дублируются и не конфликтуют.
-
-Файлы для проверки:
-
-- `SONAR_ROADMAP.md`
-  - Обновить checkbox verification после фактических проверок.
-  - Не превращать его в основной roadmap проекта.
-- `sonarqube-frontend-rules.json`
-  - Пока файл существует, проверить counts: TS 495, JS 478, CSS 29, HTML/Web 93, total 1095.
-  - Перед удалением определить новый source of truth.
-- `scripts/generate-sonar-catalog.mjs`
-  - Проверить mapping по RSPEC key.
-  - Проверить `external-eslint` mapping на уже включенные правила.
-  - Проверить, что deprecated -> `integrationStatus: deprecated`, `enabledByDefault: false`.
-  - Проверить, что CSS/HTML/Web -> `metadata-only` или `deprecated`.
-  - Проверить severity policy:
-    - `BLOCKER`/`CRITICAL` -> `error`
-    - `MAJOR` -> `error`
-    - `MINOR`/`INFO` -> `warn`
-    - `SECURITY_HOTSPOT` -> `warn`
-- `scripts/validate-sonar-catalog.mjs`
-  - Проверить source count = generated count.
-  - Проверить duplicate source keys.
-  - Проверить duplicate executable ESLint ids.
-  - Проверить deprecated rules не enabled.
-  - Проверить CSS/HTML/Web не executable.
-- `configs/sonar-catalog.generated.json`
-  - Проверить summary counts.
-  - Проверить отсутствие `descriptionSections` и HTML-heavy content.
-  - Проверить поля: `key`, `repo`, `name`, `severity`, `type`, `status`, `scope`, `lang`, `bucket`, `params`, `impacts`, `eslintRuleId`, `eslintSource`, `enabledByDefault`, `fixable`, `hasSuggestions`, `requiresTypeChecking`, `integrationStatus`.
-- `configs/rules/sonar.generated.mjs`
-  - Проверить 251 unique executable `sonarjs/*` rules.
-  - Проверить разделение common/type-checked rules.
-  - Проверить, что Sonar plugin объявлен один раз.
-- `configs/sonar.mjs`, `configs/react-sonar.mjs`
-  - Проверить composition без plugin redefine.
-  - Проверить, что Sonar profile opt-in, а не default.
-
-Команды проверки:
-
-- `npm run generate:sonar`
-- `npm run validate:sonar`
-- `node -e "const c=require('./configs/sonar-catalog.generated.json'); console.log(c.summary)"`
-- `node -e "const c=require('./configs/sonar-catalog.generated.json'); const ids=c.rules.filter(r=>r.integrationStatus==='sonarjs').map(r=>r.eslintRuleId); console.log(ids.length, new Set(ids).size)"`
-- `node -e "import('./configs/sonar.mjs')"`
-- `node -e "import('./configs/react-sonar.mjs')"`
-- ESLint smoke на JS, JSX, TS файлах через API или fixture.
-
-Acceptance:
-
-- Все 1095 SonarQube records учтены.
-- Executable Sonar rules deduped.
-- Deprecated и CSS/HTML/Web не исполняются ESLint.
-- Sonar rules не участвуют в formatter/fix flow.
-
-## Phase 7: Dependencies, lightweight policy, latest stable
-
-Цель: минимальные зависимости, последние стабильные версии, без лишнего runtime веса.
-
-Файлы для проверки:
-
-- `package.json`
-  - Проверить каждую dependency: нужна ли runtime consumer-пакету или только dev/build.
-  - Разнести `dependencies`, `peerDependencies`, `peerDependenciesMeta`, `devDependencies`.
-  - Проверить, нужно ли bundle all plugins или лучше peer-only с понятным install/init.
-  - Проверить optional peer для React-only plugins и Sonar.
-  - Проверить `eslint-plugin-prettier`: возможно удалить после разделения formatter.
-  - Проверить `husky`: должен быть devDependency или CLI-managed dependency только при необходимости.
-- `package-lock.json` / `yarn.lock`
-  - Перегенерировать выбранным package manager.
-  - Не держать два lock источника без причины.
-
-Актуальные расхождения по `npm outdated --long` на момент аудита:
-
-- `@eslint/js`: current 9.39.1, wanted 9.39.4, latest 10.0.1.
-- `eslint`: current 9.39.1, wanted 9.39.4, latest 10.4.0.
-- `eslint-config-prettier`: current 9.1.2, latest 10.1.8.
-- `eslint-plugin-prettier`: current 5.5.4, latest 5.5.5.
-- `eslint-plugin-react-hooks`: current 5.2.0, latest 7.1.1.
-- `eslint-plugin-simple-import-sort`: current 12.1.1, latest 13.0.0.
-- `globals`: current 15.15.0, latest 17.6.0.
-- `prettier`: current 3.7.4, latest 3.8.3.
-- `typescript-eslint`: current 8.48.1, wanted/latest 8.60.0.
-- `typescript`: current 5.9.3, latest 6.0.3.
-- `@types/node`: current 22.19.1, latest 25.9.1.
-
-Команды проверки:
-
-- `npm outdated --long`
-- `npm audit --omit=dev`
-- `npm ls --depth=0`
-- После обновлений: `npm run lint`, `npm run validate:sonar`, `npm pack --dry-run`.
-
-Acceptance:
-
-- Зависимости обновлены до последних стабильных в выбранной major policy.
-- Breaking major upgrades отдельно проверены в fixture.
-- Лишние runtime dependencies удалены.
-
-## Phase 8: Rule harmony and conflict audit
-
-Цель: существующие правила гармоничны, не конфликтуют и не дублируются.
-
-Файлы для проверки:
-
-- `configs/rules/best-practices.rule.mjs`
-  - Проверить overlap с `@eslint/js recommended`.
-  - Проверить конфликт с Prettier, если formatter отделяется.
-  - Проверить security-sensitive defaults: `no-implied-eval` сейчас `off`, нужно обоснование или включение.
-- `configs/rules/javascript.rule.mjs`
-  - Проверить запреты `Symbol`/`BigInt`; для modern frontend это может быть устаревшим ограничением.
-  - Проверить, не конфликтуют ли AST selectors с TypeScript parser.
-- `configs/rules/typescript.rule.mjs`
-  - Проверить `explicit-function-return-type` как default для React projects; может быть слишком шумным.
-  - Проверить `explicit-member-accessibility`, `member-ordering` для frontend codebase.
-- `configs/rules/react.rule.mjs`
-  - Проверить JSX/a11y rules against Sonar catalog mappings.
-  - Проверить отсутствие дублирования с SonarJS React rules.
-- `configs/rules/import.rule.mjs` и `configs/rules/import-sort.rule.mjs`
-  - Проверить совместимость import/extensions и simple-import-sort.
-  - Проверить TypeScript resolver необходимость.
-- `configs/rules/one-module.rule.mjs`
-  - Проверить, что strict-only rule не ломает common React patterns.
-- `configs/rules/sonar.generated.mjs`
-  - Проверить overlap с base/react/strict rules.
-  - Проверить, что `external-eslint` Sonar records не включены повторно.
-
-Команды проверки:
-
-- Script/one-liner собрать итоговые `rules` по каждому профилю и найти duplicate rule ids.
-- ESLint smoke на fixture с base/react/strict/sonar/react-sonar.
-- Проверить Prettier конфликт: `npx eslint-config-prettier` после выбора модели formatter.
-
-Acceptance:
-
-- Нет конфликтующих правил форматирования.
-- Нет повторного включения одного executable rule id в одном профиле.
-- Strict rules действительно opt-in.
-
-## Phase 9: Consumer fixture verification
-
-Цель: доказать, что пакет работает в чистом frontend/React проекте.
-
-Файлы/папки для проверки:
-
-- Новый `fixtures/react-ts` или временный sandbox вне publish surface.
-  - Минимальный `package.json`.
-  - `tsconfig.json`.
-  - `src/App.tsx`.
-  - `eslint.config.mjs`, создаваемый CLI `init`.
-  - `.prettierrc`, создаваемый CLI `init`.
-  - `.husky/pre-commit`, создаваемый `husky enable`.
-- `package.json` root
-  - Добавить scripts для smoke test только после решения fixture policy.
-
-Сценарии проверки:
-
-- Install package tarball в fixture.
-- Import default profile.
-- Switch profile to `react`.
-- Switch profile to `sonar`.
-- Switch profile to `react-sonar`.
-- Run `lint`.
-- Run `lint --fix`.
-- Run `format --check`.
-- Run `format`.
-- Run `fix` and verify Sonar is not autofixed.
-- Run `husky enable`, commit hook file changes are scoped.
-- Run `husky disable`, user content remains.
-
-Acceptance:
-
-- Все команды работают из fixture root.
-- Ошибки понятны при отсутствии `package.json`, `tsconfig.json`, `eslint.config.mjs`.
-- Пакет не требует ручной сборки после install.
-
-## Phase 10: Release readiness
-
-Цель: подготовить стабильный npm release.
-
-Проверки:
-
-- `npm pack --dry-run`
-- Install tarball в npm/yarn/pnpm fixtures.
-- `npm audit --omit=dev`
-- `npm run lint`
-- `npm run validate:sonar`
-- Full CLI smoke.
-- Проверить package size.
-- Проверить license implications `eslint-plugin-sonarjs` (`LGPL-3.0-only`) для dependency model.
-
-Acceptance:
-
-- Public API стабилен.
-- Default profile выбран осознанно.
-- CLI documented через `--help`.
-- Husky default off.
-- Sonar rules покрыты catalog и executable subset без дублей.
-- Formatter separated from Sonar and semantic lint.
+# ROADMAP: @ytdev/linter release readiness
+
+Этот документ - рабочий план для будущих агентов перед переизданием пакета как `@ytdev/linter`.
+Текущая итерация меняет только `ROADMAP.md`: исходники, конфиги, lockfile, документация и package metadata должны оставаться без изменений, пока отдельная фаза явно не будет взята в работу.
+
+## Current Audit Snapshot
+
+Дата аудита: 2026-05-26.
+
+Роль для выполнения roadmap: `senior JavaScript tooling engineer` по ESLint flat config, npm package surface, dependency security, consumer setup, SonarJS/SonarQube coverage и release verification.
+
+Текущий проект: frontend tooling npm package с ESLint profiles, Prettier config, Sonar catalog и локальной contributor-инфраструктурой.
+
+Текущее package name: `@ytvee-dev/eslint-config-react`.
+
+Целевое package name для будущей публикации: `@ytdev/linter`.
+
+Package manager policy: временно сохраняются оба lockfile, `package-lock.json` и `yarn.lock`. Любые будущие dependency changes обязаны синхронно обновлять оба lockfile или отдельной задачей менять эту политику.
+
+Публикация: реальный `npm publish` запрещён до завершения всех фаз и отдельного явного разрешения пользователя. Разрешены только dry-run и tarball smoke checks.
+
+Текущий package surface: `package.json` использует whitelist `files`, поэтому `docs/`, `ROADMAP.md`, `SONAR_ROADMAP.md`, `index.html`, scripts и `.husky` не должны попадать в published tarball.
+
+Главный размер tarball: не документация, а `configs/sonar-catalog.generated.json`, примерно 828.5 kB. Если размер пакета станет проблемой, оптимизировать нужно public export/generated catalog policy, а не repo docs.
+
+Husky: `.husky/pre-commit` сейчас является repo-local hook для разработки текущего пакета. Consumer-project Husky setup в published package не реализован и не должен включаться через lifecycle scripts.
+
+TypeScript consumer risk: `configs/base.mjs` вычисляет `tsconfigRootDir` от директории пакета. В установленном consumer project это может указывать внутрь `node_modules`, а не в корень consumer repo.
+
+Rule duplication audit: в профилях обнаружены повторные объявления `for-direction`, `no-var`, `prefer-const`, `@typescript-eslint/no-floating-promises`, `@typescript-eslint/no-unused-vars`. В `strict` дополнительно повторяются `no-restricted-syntax` и `@typescript-eslint/no-explicit-any`. Часть повторов может быть intentional override, но это нужно доказать и зафиксировать.
+
+Dependency audit snapshot: `npm audit --omit=dev` ранее показывал 5 vulnerabilities через transitive deps: `ajv`, `brace-expansion`, `flatted`, `minimatch`, `picomatch`. Нельзя слепо применять `npm audit fix`; нужна controlled upgrade/removal strategy.
+
+Formatter risk: `eslint-plugin-prettier` и `eslint-config-prettier` нужно пересмотреть после разделения linting и formatting. `eslint-plugin-prettier` особенно подозрителен как runtime dependency, если Prettier будет отдельным CLI step.
+
+Dependency ownership rule: React, a11y, hooks, TypeScript ESLint и SonarJS плагины не переписывать внутрь проекта без отдельного технического обоснования. Переносить в локальный код только маленькие и контролируемые функции, где поддержка локальной реализации безопаснее зависимости.
+
+## Execution Rules For Future Agents
+
+1. Перед любыми изменениями выполнить `git status --short` и отдельно отметить чужие или unrelated dirty changes.
+2. Не откатывать и не перезаписывать существующие изменения пользователя.
+3. Работать по одной фазе за раз, если пользователь не просит объединить фазы.
+4. Не менять unrelated files. Если фаза касается только roadmap/docs, не трогать source/package files.
+5. Не выполнять реальный `npm publish`.
+6. Не добавлять lifecycle scripts, которые автоматически меняют consumer project при install.
+7. Не устанавливать Husky в consumer project без явной команды пользователя или CLI command.
+8. Не добавлять новые зависимости без объяснения, почему нельзя обойтись существующим кодом, peer dependency или локальной малой реализацией.
+9. При dependency changes обновлять и проверять оба lockfile: `package-lock.json` и `yarn.lock`.
+10. При изменении public API проверять `exports`, `files`, tarball contents и smoke install packed package.
+11. При изменении rule configs запускать duplicate-rule audit по всем public profiles.
+12. При изменении Sonar generator/validator запускать `npm run generate:sonar` и `npm run validate:sonar`.
+13. При изменении docs/package metadata проверять, что docs остаются в repo, но не попадают в tarball, кроме whitelisted README/LICENSE.
+14. В конце каждой фазы фиксировать выполненные команды и результат в финальном ответе или release notes.
+
+## Phase 0: Worktree And Baseline Audit
+
+### Goal
+
+Получить воспроизводимую baseline-картину перед любыми изменениями, чтобы будущий агент не смешал roadmap work с уже существующими Sonar/package edits.
+
+### Prompt
+
+```
+Ты senior JavaScript tooling engineer. Проведи baseline audit текущего repo перед изменениями для будущей публикации `@ytdev/linter`.
+Не меняй файлы. Проверь worktree, package tarball, package metadata, dependency state, duplicate ESLint rules и Sonar-related dirty changes.
+Составь краткий список фактов и рисков, которые нужно учитывать перед следующей фазой.
+```
+
+### Files Likely Affected
+
+На этой фазе файлы не менять.
+
+### Required Checks
+
+1. Выполнить `git status --short`.
+2. Если есть dirty changes в `scripts/generate-sonar-catalog.mjs`, `scripts/validate-sonar-catalog.mjs`, `scripts/sonar-profile-coverage.mjs`, `configs/sonar-catalog.generated.json`, `SONAR_ROADMAP.md` или Sonar docs, описать их как отдельный риск.
+3. Выполнить `npm pack --dry-run` и сохранить список файлов tarball.
+4. Выполнить duplicate-rule audit по `base`, `react`, `strict`, `sonar`, `react-sonar`.
+5. Выполнить `npm audit --omit=dev`.
+6. Выполнить `npm outdated --long`.
+7. Выполнить `npm ls --depth=0`.
+8. Проверить `package.json` fields: `name`, `version`, `exports`, `files`, `dependencies`, `peerDependencies`, `peerDependenciesMeta`, `devDependencies`, `scripts`, `packageManager`.
+
+### Verification Commands
+
+```powershell
+git status --short
+npm pack --dry-run
+npm audit --omit=dev
+npm outdated --long
+npm ls --depth=0
+```
+
+Duplicate-rule audit можно выполнить одноразовым Node script, который импортирует public profile modules, проходит по config array, собирает `rules` и выводит rule ids, встречающиеся больше одного раза в одном profile.
+
+### Acceptance Criteria
+
+Baseline documented.
+
+Ни один tracked file не изменён.
+
+Tarball contents понятны.
+
+Dependency risks перечислены без автоматического `npm audit fix`.
+
+Rule duplicates перечислены по профилям.
+
+## Phase 1: Rename Package Surface To @ytdev/linter
+
+### Goal
+
+Подготовить package identity для будущего rebrand на `@ytdev/linter`, не публикуя пакет.
+
+### Prompt
+
+```
+Подготовь package identity к будущей публикации как `@ytdev/linter`.
+Не выполняй `npm publish`.
+Обнови только package metadata, lockfiles и human-facing references, которые необходимы для консистентного dry-run.
+Сохрани backward compatibility exports, если нет явного решения о breaking change.
+Проверь, что `@ytdev/linter` является корректным npm scoped package name, а `ytdev/linter` без scope не является npm package name.
+```
+
+### Files Likely Affected
+
+`package.json`, `package-lock.json`, `yarn.lock`, `README.md`, `README_RU.md`, docs with install snippets, future release notes.
+
+### Implementation Notes
+
+`package.json.name` должен стать `@ytdev/linter`.
+
+`repository.url` должен указывать на будущий repo, если пользователь подтверждает GitHub location `ytdev/linter`.
+
+Package exports не переименовывать без необходимости.
+
+Если меняется CLI name, выбрать стабильное имя вроде `ytdev-linter`.
+
+Если старое package name нужно сохранить как migration path, описать это отдельно: deprecation package, README notice или major release notes.
+
+### Verification Commands
+
+```powershell
+node -e "const p=require('./package.json'); console.log(p.name, p.repository)"
+npm pack --dry-run
+npm view @ytdev/linter name version --json
+git diff -- package.json package-lock.json yarn.lock
+```
+
+### Acceptance Criteria
+
+Package metadata консистентна.
+
+Оба lockfile синхронно обновлены.
+
+Документация не обещает публикацию, которая ещё не выполнена.
+
+`npm publish` не запускался.
+
+## Phase 2: Keep Docs In Repo, Not Package
+
+### Goal
+
+Документация должна оставаться в репозитории, но не утяжелять installed npm package.
+
+### Prompt
+
+```
+Проверь и зафиксируй package surface policy: repo docs остаются в git, но не входят в npm tarball.
+Не удаляй документацию из репозитория.
+Проверь `files` whitelist и `npm pack --dry-run`.
+Отдельно оцени, нужен ли public export `./configs/sonar-catalog`, потому что именно generated JSON является главным источником веса tarball.
+```
+
+### Files Likely Affected
+
+`package.json`, possibly docs explaining package contents.
+
+### Implementation Notes
+
+Оставить `README.md`, `README_RU.md`, `LICENSE` в package.
+
+Не включать `docs/`, `ROADMAP.md`, `SONAR_ROADMAP.md`, `index.html`, `build-docbook.js`, scripts и raw audit artifacts в package.
+
+Если `configs/sonar-catalog.generated.json` не нужен runtime consumers, рассмотреть один из вариантов: убрать public export, оставить только summary, split catalog на отдельный optional package, compress/minify generated JSON, или оставить как intentional public API.
+
+Не принимать решение об удалении `./configs/sonar-catalog` без проверки users/API expectations.
+
+### Verification Commands
+
+```powershell
+npm pack --dry-run
+node -e "const p=require('./package.json'); console.log(p.files, p.exports['./configs/sonar-catalog'])"
+```
+
+### Acceptance Criteria
+
+Repo docs остаются в repo.
+
+Tarball не содержит roadmap/docs/build artifacts.
+
+Если generated Sonar catalog остаётся в package, причина явно задокументирована.
+
+## Phase 3: Consumer Setup And Husky
+
+### Goal
+
+Husky должен работать для проекта, в который устанавливается линтер, а не как неявный lifecycle side effect текущего пакета.
+
+### Prompt
+
+```
+Спроектируй и реализуй consumer-controlled Husky setup для `@ytdev/linter`.
+Не используй install/prepare/postinstall lifecycle для автоматической модификации consumer repo.
+Добавь явный CLI flow `ytdev-linter init --husky` или `ytdev-linter husky enable/disable`.
+Hook должен создаваться только в `process.cwd()` consumer project, быть идемпотентным и не удалять пользовательский hook content.
+```
+
+### Files Likely Affected
+
+`package.json`, future `bin/*`, future CLI modules, `.husky/pre-commit` only if changing local contributor hook policy.
+
+### Implementation Notes
+
+Root `.husky/pre-commit` текущего repo считать contributor tooling.
+
+Published package не должен включать root `.husky`.
+
+Consumer hook должен иметь managed markers:
+
+```sh
+# @ytdev/linter begin
+# @ytdev/linter end
+```
+
+`enable` добавляет или обновляет только managed block.
+
+`disable` удаляет только managed block.
+
+Если `.husky/pre-commit` содержит пользовательские команды, они должны сохраниться.
+
+Если `.git` отсутствует, CLI должен дать понятную ошибку.
+
+Если Husky не установлен в consumer repo, CLI должен либо установить минимальную структуру через безопасные file operations, либо вывести explicit instruction. Не добавлять dependency install без разрешения.
+
+### Verification Commands
+
+```powershell
+node ./bin/ytdev-linter.mjs --help
+node ./bin/ytdev-linter.mjs husky enable
+node ./bin/ytdev-linter.mjs husky enable
+node ./bin/ytdev-linter.mjs husky disable
+git diff -- .husky/pre-commit
+```
+
+Выполнять команды в fixture/temp consumer repo, не в корне пакета, если цель - проверить consumer behavior.
+
+### Acceptance Criteria
+
+Consumer hook default off.
+
+Enable/disable идемпотентны.
+
+User hook content сохраняется.
+
+Package install сам не меняет consumer filesystem.
+
+## Phase 4: Dependency Security And Ownership
+
+### Goal
+
+Снизить dependency risk, убрать лишние runtime зависимости и не переносить крупные внешние плагины внутрь проекта без реального основания.
+
+### Prompt
+
+```
+Проведи dependency security и ownership audit.
+Не выполняй слепой `npm audit fix`.
+Для каждой dependency определи: runtime нужна, dev-only, peer-only, optional peer или кандидат на удаление.
+Обнови vulnerable transitive dependencies через controlled upgrades.
+Переноси функциональность внутрь проекта только если она мала, понятна, покрыта тестами и безопаснее зависимости.
+Синхронно обнови `package-lock.json` и `yarn.lock`.
+```
+
+### Files Likely Affected
+
+`package.json`, `package-lock.json`, `yarn.lock`, source configs if dependencies removed or moved.
+
+### Dependency Decisions To Evaluate
+
+`eslint-plugin-prettier`: вероятный кандидат на удаление после formatter separation.
+
+`eslint-config-prettier`: оставить только если нужен как audited conflict suppressor; иначе заменить локальным минимальным набором отключений после проверки.
+
+`husky`: не должен быть runtime dependency для consumers, если CLI пишет hook самостоятельно или даёт instructions.
+
+`eslint-plugin-import`: проверить, какие правила реально используются; часть может быть заменена core `no-duplicate-imports`, но resolver/import semantics не переписывать без тестов.
+
+`eslint-plugin-simple-import-sort`: не переписывать наивно. Локальный import-sort rule возможен только отдельной фазой с fixtures.
+
+`eslint-plugin-react`, `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y`: держать как peer/optional peer для React profiles, не vendoring.
+
+`eslint-plugin-sonarjs`: держать opt-in peer/optional peer или dependency только после проверки license/security implications.
+
+`typescript-eslint`: не vendoring, держать совместимым с ESLint major policy.
+
+`eslint`, `@eslint/js`, `typescript`, `prettier`: обновлять controlled, с учетом breaking majors.
+
+### Verification Commands
+
+```powershell
+npm audit --omit=dev
+npm outdated --long
+npm ls --depth=0
+npm run validate:sonar
+npm pack --dry-run
+```
+
+Если обновлялись Yarn dependencies:
+
+```powershell
+yarn install --immutable
+```
+
+Если обновлялись npm dependencies:
+
+```powershell
+npm install --package-lock-only
+```
+
+### Acceptance Criteria
+
+Known vulnerabilities устранены или документированы с причиной.
+
+Runtime dependency surface минимален.
+
+Peer/optional peer policy понятна.
+
+Оба lockfile синхронизированы.
+
+Ни одна крупная dependency не переписана локально без tests и rationale.
+
+## Phase 5: Formatter Separation
+
+### Goal
+
+ESLint проверяет semantic/code-quality rules, Prettier форматирует код отдельно, Sonar не участвует в default fix flow.
+
+### Prompt
+
+```
+Раздели linting и formatting.
+Убери запуск Prettier как ESLint rule из base profile, если он там есть.
+Сохрани отдельный Prettier config export.
+Сделай так, чтобы `fix` запускал ESLint autofix для non-Sonar profile и затем Prettier, а `format` запускал только Prettier.
+Не включай Sonar profile в default autofix.
+```
+
+### Files Likely Affected
+
+`configs/base.mjs`, `prettier.js`, local Prettier config, future CLI files, `package.json`.
+
+### Implementation Notes
+
+`eslint-plugin-prettier/recommended` в base делает formatting частью lint errors. Это нужно удалить или изолировать в отдельный opt-in profile.
+
+Если `eslint-config-prettier` остаётся, он должен использоваться только для отключения formatting-conflicting lint rules.
+
+ESLint stylistic rules, конфликтующие с Prettier, должны быть удалены или явно отключены.
+
+`fix` не должен использовать `sonar` или `react-sonar` по умолчанию.
+
+### Verification Commands
+
+```powershell
+npx eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives
+npx prettier --check .
+node -e "import('./configs/base.mjs')"
+npm pack --dry-run
+```
+
+In fixture:
+
+```powershell
+npx ytdev-linter format --check
+npx ytdev-linter format
+npx ytdev-linter fix
+```
+
+### Acceptance Criteria
+
+Formatting violations are Prettier responsibility.
+
+Semantic lint can pass/fail independently from Prettier.
+
+Sonar autofix is not part of default fix.
+
+`eslint-plugin-prettier` removed or explicitly justified.
+
+## Phase 6: Rule Deduplication
+
+### Goal
+
+Итоговые public profiles не должны повторно объявлять один и тот же executable ESLint rule id без intentional override.
+
+### Prompt
+
+```
+Добавь или выполни duplicate-rule audit для profiles `base`, `react`, `strict`, `sonar`, `react-sonar`.
+Удали идентичные дубли.
+Оставь intentional overrides только если rule value действительно меняется и есть понятное обоснование.
+Добавь validation, которая будет падать на новых unintended duplicates.
+```
+
+### Files Likely Affected
+
+`configs/rules/*.mjs`, future validation script, `package.json` scripts if adding validation.
+
+### Known Duplicates To Investigate
+
+`for-direction` appears more than once through recommended/base composition.
+
+`no-var` appears more than once.
+
+`prefer-const` appears more than once.
+
+`@typescript-eslint/no-floating-promises` appears more than once.
+
+`@typescript-eslint/no-unused-vars` appears more than once.
+
+`no-restricted-syntax` appears more than once in `strict`.
+
+`@typescript-eslint/no-explicit-any` appears more than once in `strict`.
+
+### Implementation Notes
+
+Do not remove an override only because it is duplicated. First compare actual rule values.
+
+If duplicate has same value as upstream recommended config, remove local copy unless local explicitness is required.
+
+If duplicate changes severity/options intentionally, keep it and record why in validation allowlist.
+
+Avoid adding comments unless they prevent future accidental removal.
+
+### Verification Commands
+
+```powershell
+node scripts/audit-rule-duplicates.mjs
+npx eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives
+npm run validate:sonar
+```
+
+If no committed script exists yet, use a one-off Node import audit and then decide whether to commit it.
+
+### Acceptance Criteria
+
+No unintended duplicate rule ids in any public profile.
+
+Intentional overrides have allowlist/rationale.
+
+Validation can be rerun by future agents.
+
+## Phase 7: Consumer TypeScript Correctness
+
+### Goal
+
+Type-aware linting must work from consumer project root and not depend on package install path.
+
+### Prompt
+
+```
+Fix TypeScript parser/projectService behavior for installed consumer projects.
+`tsconfigRootDir` must refer to consumer cwd or be configurable, not to the package directory in `node_modules`.
+Verify JS-only, TS, React TS and missing-tsconfig fixtures.
+Keep failure messages actionable.
+```
+
+### Files Likely Affected
+
+`configs/base.mjs`, TypeScript rule config, future CLI init config, fixture files.
+
+### Implementation Notes
+
+Current `new URL('..', import.meta.url).pathname` points to package location.
+
+Prefer consumer-controlled config shape if ESLint flat config can import factory function.
+
+Consider exporting both static configs and config factory only if backward compatibility remains clear.
+
+Do not require type-aware linting for JS-only consumers.
+
+If `projectService` requires a `tsconfig.json`, missing-tsconfig error should explain how to choose non-type-aware profile or create tsconfig.
+
+### Verification Commands
+
+```powershell
+node -e "import('./configs/base.mjs')"
+node -e "import('./configs/react.mjs')"
+npx eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives
+```
+
+Fixture checks:
+
+```powershell
+npx eslint src/index.js
+npx eslint src/index.ts
+npx eslint src/App.tsx
+```
+
+### Acceptance Criteria
+
+Installed package works from consumer cwd.
+
+TS lint does not search for tsconfig inside installed package.
+
+JS-only consumers have a documented path.
+
+React TS fixture passes import/config smoke.
+
+## Phase 8: Profile Semantics And Sonar Validation
+
+### Goal
+
+Public profiles must make true promises: `sonar` is not the same as `react-sonar`, and React-only external Sonar mappings must not be claimed by plain `sonar`.
+
+### Prompt
+
+```
+Validate profile semantics and Sonar catalog correctness.
+Keep generated catalog as canonical runtime/source-of-truth inside the repo.
+Treat raw Sonar export as optional refresh artifact.
+Ensure `external-eslint` records have profile-aware coverage metadata.
+Verify plain `sonar` does not claim React-only external mappings.
+```
+
+### Files Likely Affected
+
+`scripts/generate-sonar-catalog.mjs`, `scripts/validate-sonar-catalog.mjs`, `scripts/sonar-profile-coverage.mjs`, `configs/sonar-catalog.generated.json`, Sonar docs only if docs phase is allowed.
+
+### Implementation Notes
+
+`sonar` should mean `base + sonarjs executable rules`.
+
+`react-sonar` should mean `react + sonarjs executable rules`.
+
+Some Sonar equivalents are already covered by React/a11y rules and therefore only available in React profiles.
+
+Every `external-eslint` record should have non-empty `coveredByProfiles`.
+
+`coveredByProfiles` must be derived from actual imported public profiles, not manually guessed.
+
+Deprecated and metadata-only records should stay non-executable.
+
+### Verification Commands
+
+```powershell
+npm run generate:sonar
+npm run validate:sonar
+node -e "import('./configs/sonar.mjs')"
+node -e "import('./configs/react-sonar.mjs')"
+node -e "const c=require('./configs/sonar-catalog.generated.json'); console.log(c.summary)"
+node -e "const c=require('./configs/sonar-catalog.generated.json'); const bad=c.rules.filter(r=>r.integrationStatus==='external-eslint' && (!Array.isArray(r.coveredByProfiles) || r.coveredByProfiles.length===0)); console.log(bad.length)"
+```
+
+### Acceptance Criteria
+
+Generated catalog is valid.
+
+Every external mapping has profile-aware coverage.
+
+React-only mappings do not list plain `sonar`.
+
+Docs and README do not overpromise plain `sonar` coverage when docs updates are in scope.
+
+## Phase 9: Fixture-Based Verification
+
+### Goal
+
+Доказать, что package работает в реальных consumer scenarios после pack/install, а не только при local import.
+
+### Prompt
+
+```
+Создай temporary или committed fixtures для consumer verification.
+Pack текущий package, установи tarball в чистые consumer projects и проверь JS-only, TypeScript, React TypeScript, Sonar opt-in и Husky init scenarios.
+Не публикуй package.
+```
+
+### Files Likely Affected
+
+Temporary fixture directories outside package surface, optionally `fixtures/**`, optionally validation scripts.
+
+### Required Scenarios
+
+JS-only project imports base/default config.
+
+TypeScript project imports base or strict config.
+
+React TypeScript project imports react config.
+
+Sonar project imports sonar config.
+
+React Sonar project imports react-sonar config.
+
+Consumer without `tsconfig.json` gets actionable behavior.
+
+Consumer with existing `.husky/pre-commit` can run `husky enable` and `husky disable` without losing user commands.
+
+Consumer can run format and lint separately.
+
+### Verification Commands
+
+```powershell
+npm pack --dry-run
+npm pack
+npm install ..\path\to\packed.tgz
+npx eslint .
+npx ytdev-linter --help
+npx ytdev-linter init
+npx ytdev-linter husky enable
+npx ytdev-linter husky disable
+```
+
+### Acceptance Criteria
+
+Packed tarball installs in clean consumer project.
+
+All public exports import from installed package.
+
+CLI executes from consumer cwd.
+
+No package script modifies consumer project without explicit CLI command.
+
+Fixture failures are documented and fixed before release readiness.
+
+## Phase 10: Release Dry Run Only
+
+### Goal
+
+Подготовить release candidate без реальной публикации.
+
+### Prompt
+
+```
+Проведи release readiness dry-run для `@ytdev/linter`.
+Не выполняй реальный `npm publish`.
+Проверь package contents, installability, exports, CLI, dependency audit, Sonar validation and formatting/linting.
+Сформируй финальный список blockers и команд, которые прошли.
+```
+
+### Files Likely Affected
+
+No source files expected unless dry-run exposes blockers.
+
+### Verification Commands
+
+```powershell
+git status --short
+npm run generate:sonar
+npm run validate:sonar
+node -e "import('./configs/sonar.mjs')"
+node -e "import('./configs/react-sonar.mjs')"
+npx eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives
+npx prettier --check .
+npm audit --omit=dev
+npm pack --dry-run
+npm publish --dry-run
+```
+
+### Acceptance Criteria
+
+All checks pass or blockers are explicitly listed.
+
+Tarball contains only intended package files.
+
+Package size is accepted or Sonar catalog export decision is revisited.
+
+`npm publish --dry-run` passes.
+
+Real `npm publish` is still not executed.
+
+## Roadmap-Only Verification For This Edit
+
+После изменения только `ROADMAP.md` выполнить:
+
+```powershell
+npx prettier --check ROADMAP.md
+git diff -- ROADMAP.md
+git status --short
+```
+
+Если `npx prettier --check ROADMAP.md` недоступен из-за отсутствующих dependencies, network, sandbox или package-manager mismatch, сообщить точную причину и показать, что `ROADMAP.md` изменён только как documentation file.
+
+## Future Acceptance Summary
+
+Checklist перед настоящей публикацией:
+
+1. Package identity changed to `@ytdev/linter`.
+2. Real publish not run before explicit approval.
+3. Docs remain in repo but not in package tarball.
+4. Generated Sonar catalog package-size decision is explicit.
+5. Husky works only through explicit consumer CLI command.
+6. Runtime dependency surface is minimal and audited.
+7. Known transitive vulnerabilities are fixed or documented with rationale.
+8. Prettier is separated from semantic linting.
+9. Default fix flow does not run Sonar autofix.
+10. Duplicate ESLint rules are removed or allowlisted as intentional overrides.
+11. TypeScript config works from consumer project root.
+12. `sonar` and `react-sonar` semantics are profile-aware and documented.
+13. Packed tarball installs and runs in clean consumer fixtures.
+14. Both `package-lock.json` and `yarn.lock` are synchronized after dependency changes.
