@@ -9,7 +9,7 @@ This document describes all rules actually enabled in `@ytdev/linter`, following
   - [Common Rules @eslint/js](#common-rules-eslintjs-config-recommended)
   - [Best Practices (Airbnb)](#best-practices-airbnb)
   - [Imports](#imports)
-  - [Formatting (Prettier)](#formatting-prettier--eslint-plugin-prettierrecommended)
+  - [Formatting (Prettier)](#formatting-prettier)
   - [TypeScript Rules](#typescript-rules-eslint-config-recommendedtypechecked)
   - [Custom TypeScript Rules](#custom-ts-enhancements-on-top-of-recommended)
 - [React Profile](#react-profile-configsreactmjs)
@@ -713,9 +713,9 @@ import express from 'express';
 import { helper } from './helper';
 ```
 
-### Formatting (Prettier + `eslint-plugin-prettier/recommended`)
+### Formatting (Prettier)
 
-**Description:** All Prettier violations are shown as ESLint errors. Settings:
+**Description:** Prettier formatting is checked and written separately from ESLint. The base ESLint profile keeps `eslint-config-prettier` at the end of the config array to disable formatting-conflicting lint rules. Settings:
 
 - Line width: 120 characters
 - Quotes: single

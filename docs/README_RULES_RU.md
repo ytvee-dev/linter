@@ -9,7 +9,7 @@
   - [Общие правила @eslint/js](#общие-правила-eslintjs-config-recommended)
   - [Best Practices (Airbnb)](#best-practices-airbnb)
   - [Импорты](#импорты)
-  - [Форматирование (Prettier)](#форматирование-prettier--eslint-plugin-prettierrecommended)
+  - [Форматирование (Prettier)](#форматирование-prettier)
   - [Правила TypeScript](#правила-typescript-eslint-config-recommendedtypechecked)
   - [Кастомные TypeScript правила](#кастомные-ts-усиления-поверх-рекомендованного-набора)
 - [React-профиль](#react-профиль-configsreactmjs)
@@ -1727,9 +1727,9 @@ import express from 'express';
 import { helper } from './helper';
 ```
 
-### Форматирование (Prettier + `eslint-plugin-prettier/recommended`)
+### Форматирование (Prettier)
 
-**Описание:** Все нарушения Prettier показываются как ошибки ESLint. Настройки:
+**Описание:** Prettier проверяет и записывает форматирование отдельно от ESLint. Базовый ESLint-профиль оставляет `eslint-config-prettier` последним элементом config array, чтобы отключать конфликтующие форматирующие правила. Настройки:
 
 - Ширина строки: 120 символов
 - Кавычки: одинарные

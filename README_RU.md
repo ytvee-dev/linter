@@ -4,12 +4,12 @@
 
 **Русская версия** | [English](./README.md)
 
-Комплексная конфигурация ESLint для React и TypeScript проектов с интегрированной поддержкой Prettier.
+Комплексная конфигурация ESLint для React и TypeScript проектов с отдельной поддержкой форматирования Prettier.
 
 ## Возможности
 
 - **Типобезопасный линтинг** с TypeScript ESLint
-- **Интеграция Prettier** для единообразного форматирования кода
+- **Отдельное форматирование Prettier** без ошибок `prettier/prettier` внутри ESLint
 - **Поддержка React** с правилами для хуков и JSX
 - **Проверки доступности** с jsx-a11y
 - **Сортировка импортов** и их организация
@@ -83,10 +83,14 @@ module.exports = require('@ytdev/linter/prettier');
 {
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "fix": "ytdev-linter fix",
+    "format": "ytdev-linter format",
+    "format:check": "ytdev-linter format --check"
   }
 }
 ```
+
+`fix` запускает ESLint autofix с default non-Sonar config, затем Prettier. `format` запускает только Prettier. Sonar profiles остаются opt-in и не входят в default fix flow.
 
 ### Consumer Husky setup
 
@@ -106,7 +110,7 @@ The generated block is marked with `# @ytdev/linter begin` and `# @ytdev/linter 
 
 ## Доступные конфигурации
 
-- **Base** (`@ytdev/linter`) - JavaScript/TypeScript с Prettier
+- **Base** (`@ytdev/linter`) - JavaScript/TypeScript semantic linting с отключением конфликтов Prettier
 - **React** (`@ytdev/linter/configs/react`) - Base + правила React
 - **Strict** (`@ytdev/linter/configs/strict`) - React + строгие правила именования и запрет any
 

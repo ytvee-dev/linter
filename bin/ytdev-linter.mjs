@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -8,17 +10,25 @@ const PACKAGE_NAME = '@ytdev/linter';
 const BEGIN_MARKER = '# @ytdev/linter begin';
 const END_MARKER = '# @ytdev/linter end';
 const HOOK_COMMAND = 'npx --no-install eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives';
+const require = createRequire(import.meta.url);
+const DEFAULT_TARGETS = ['.'];
+const ESLINT_ARGS = ['--ext', '.js,.mjs,.ts,.tsx', '--report-unused-disable-directives'];
 
 const helpText = `
 ytdev-linter
 
 Usage:
   ytdev-linter --help
+  ytdev-linter format [--check] [paths...]
+  ytdev-linter fix [paths...]
   ytdev-linter init --husky
   ytdev-linter husky enable
   ytdev-linter husky disable
 
 Commands:
+  format           Run Prettier write for the provided paths, or "." by default.
+  format --check   Run Prettier check for the provided paths, or "." by default.
+  fix              Run ESLint autofix for the default non-Sonar config, then Prettier write.
   init --husky      Enable the managed pre-commit hook in the current project.
   husky enable     Add or update the managed pre-commit hook block.
   husky disable    Remove only the managed pre-commit hook block.
@@ -28,6 +38,52 @@ The Husky commands operate in process.cwd() and never run during package install
 
 function printHelp() {
   console.log(helpText.trim());
+}
+
+function runNodeBin(binPath, args) {
+  const result = spawnSync(process.execPath, [binPath, ...args], {
+    cwd: process.cwd(),
+    stdio: 'inherit',
+  });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return result.status ?? 1;
+}
+
+function getTargets(args) {
+  return args.length > 0 ? args : DEFAULT_TARGETS;
+}
+
+function runPrettier(args) {
+  return runNodeBin(path.join(path.dirname(require.resolve('prettier/package.json')), 'bin', 'prettier.cjs'), args);
+}
+
+function runEslint(args) {
+  return runNodeBin(path.join(path.dirname(require.resolve('eslint/package.json')), 'bin', 'eslint.js'), args);
+}
+
+function format(args) {
+  const [maybeCheck, ...rest] = args;
+  const isCheck = maybeCheck === '--check';
+  const targets = isCheck ? getTargets(rest) : getTargets(args);
+  const prettierMode = isCheck ? '--check' : '--write';
+
+  process.exitCode = runPrettier([prettierMode, ...targets]);
+}
+
+function fix(args) {
+  const targets = getTargets(args);
+  const eslintStatus = runEslint([...targets, ...ESLINT_ARGS, '--fix']);
+
+  if (eslintStatus !== 0) {
+    process.exitCode = eslintStatus;
+    return;
+  }
+
+  process.exitCode = runPrettier(['--write', ...targets]);
 }
 
 function escapeRegExp(value) {
@@ -109,6 +165,16 @@ function run(argv) {
 
   if (!command || command === '--help' || command === '-h') {
     printHelp();
+    return;
+  }
+
+  if (command === 'format') {
+    format([subcommand, ...rest].filter(Boolean));
+    return;
+  }
+
+  if (command === 'fix') {
+    fix([subcommand, ...rest].filter(Boolean));
     return;
   }
 

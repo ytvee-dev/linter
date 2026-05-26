@@ -6,7 +6,7 @@ This document explains how to use different configuration profiles from `@ytdev/
 
 ### Base Profile
 
-The base profile includes fundamental ESLint rules, TypeScript type-checking, import management, and Prettier formatting.
+The base profile includes fundamental ESLint rules, TypeScript type-checking, import management, and `eslint-config-prettier` conflict suppression. Prettier formatting runs as a separate command, not as an ESLint rule.
 
 **What's included:**
 
@@ -14,7 +14,7 @@ The base profile includes fundamental ESLint rules, TypeScript type-checking, im
 - TypeScript rules (type-checked)
 - Best Practices from Airbnb
 - Import sorting
-- Prettier formatting
+- Prettier conflict suppression
 - `@typescript-eslint/no-explicit-any` is disabled (for gradual migration)
 
 **How to use:**

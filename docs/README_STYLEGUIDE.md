@@ -32,7 +32,7 @@ Uses `typescript-eslint` with the `recommendedTypeChecked` set:
 
 ### Formatting with Prettier
 
-`eslint-plugin-prettier/recommended` applies settings from `prettier.js`:
+Prettier uses settings from `prettier.js` and runs separately from ESLint:
 
 - Line width: **120 characters**
 - Quotes: **single** (`'`)
@@ -40,7 +40,7 @@ Uses `typescript-eslint` with the `recommendedTypeChecked` set:
 - Indentation: **2 spaces**
 - Trailing comma: **always** in multiline structures
 
-Formatting violations are shown as linter **errors** and automatically fixed.
+Formatting violations are reported by Prettier checks, not by ESLint rule errors.
 
 ### Import Management
 
@@ -222,7 +222,7 @@ Includes all rules listed above:
 - TypeScript type-checked
 - Best Practices (Airbnb)
 - Import sorting
-- Prettier formatting
+- Prettier conflict suppression
 - `@typescript-eslint/no-explicit-any` disabled (for gradual migration)
 
 ```js
@@ -308,7 +308,7 @@ Most rules support automatic fixing:
 
 ### What is Automatically Fixed
 
-- **Formatting** - Prettier fixes indentation, quotes, semicolons
+- **Formatting** - Prettier fixes indentation, quotes, semicolons as a separate step
 - **Imports** - automatic sorting by groups
 - **var → const/let** - replacing deprecated var
 - **Arrow functions** - simplifying function body
@@ -321,10 +321,12 @@ Most rules support automatic fixing:
 ### Running Autofix
 
 ```bash
-# Fix all auto-fixable errors
-npm run lint:fix
-# or
-yarn lint:fix
+# Fix ESLint auto-fixable errors and then run Prettier
+npm run fix
+# or check formatting only
+npm run format:check
+# or write formatting only
+npm run format
 
 # Fix a specific file
 npx eslint src/file.ts --fix
@@ -354,7 +356,7 @@ npx eslint src/file.ts --fix
 Instead of Airbnb's formatting rules, Prettier is used:
 
 - Unified style for JS/TS/JSX/TSX
-- Automatic fixing
+- Separate formatting checks and writes
 - No conflicts between rules
 
 #### TypeScript Instead of Flow

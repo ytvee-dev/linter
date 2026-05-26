@@ -51,13 +51,13 @@
 <li><strong>Чистота типов</strong>: запрет дублей, лишних assertions, небезопасных enum сравнений</li>
 <li><strong>Синтаксис</strong>: ограничения на namespace, triple-slash references</li></ul>
 <h3>Форматирование с Prettier</h3>
-<code>eslint-plugin-prettier/recommended</code> применяет настройки из <code>prettier.js</code>:
+<p>Prettier использует настройки из <code>prettier.js</code> и запускается отдельно от ESLint:</p>
 <ul><li>Ширина строки: <strong>120 символов</strong></li>
 <li>Кавычки: <strong>одинарные</strong> (<code>'</code>)</li>
 <li>Точка с запятой: <strong>обязательна</strong> (<code>;</code>)</li>
 <li>Отступ: <strong>2 пробела</strong></li>
 <li>Trailing comma: <strong>always</strong> в многострочных структурах</li></ul>
-<p>Нарушения форматирования показываются как <strong>ошибки</strong> линтера и автоматически исправляются.</p>
+<p>Нарушения форматирования показывает Prettier check, а не ESLint rule errors.</p>
 <h3>Управление импортами</h3>
 <h4>eslint-plugin-import</h4>
 <ul><li>Запрет дубликатов импортов (<code>no-duplicate-imports</code>)</li>
@@ -174,7 +174,7 @@ class User {
 <li>TypeScript type-checked</li>
 <li>Best Practices (Airbnb)</li>
 <li>Сортировка импортов</li>
-<li>Prettier форматирование</li>
+<li>Отключение конфликтов с Prettier</li>
 <li><code>@typescript-eslint/no-explicit-any</code> отключён (для постепенной миграции)</li></ul>
 <div class="code-block"><pre><code>import baseConfig from '@ytdev/linter';
 
@@ -234,7 +234,7 @@ export default [...strictConfig, ...reactConfig];
 <h2>Автофикс</h2>
 <p>Большинство правил поддерживают автоматическое исправление:</p>
 <h3>Что исправляется автоматически</h3>
-<ul><li><strong>Форматирование</strong> — Prettier исправляет отступы, кавычки, точки с запятой</li>
+<ul><li><strong>Форматирование</strong> — Prettier исправляет отступы, кавычки, точки с запятой отдельным шагом</li>
 <li><strong>Импорты</strong> — автоматическая сортировка по группам</li>
 <li><strong>var → const/let</strong> — замена устаревшего var</li>
 <li><strong>Стрелочные функции</strong> — упрощение тела функции</li>
@@ -244,10 +244,12 @@ export default [...strictConfig, ...reactConfig];
 <li><strong>Кавычки свойств</strong> — удаление ненужных кавычек</li>
 <li><strong>React</strong> — самозакрывающиеся теги, булевы пропсы</li></ul>
 <h3>Запуск автофикса</h3>
-<div class="code-block"><pre><code># Исправить все автоисправимые ошибки
-npm run lint:fix
-# или
-yarn lint:fix
+<div class="code-block"><pre><code># Исправить ESLint auto-fixable ошибки и затем запустить Prettier
+npm run fix
+# или проверить только форматирование
+npm run format:check
+# или записать только форматирование
+npm run format
 
 # Исправить конкретный файл
 npx eslint src/file.ts --fix
@@ -268,7 +270,7 @@ npx eslint src/file.ts --fix
 <h4>Форматирование через Prettier</h4>
 <p>Вместо набора форматирующих правил Airbnb используется Prettier:</p>
 <ul><li>Единый стиль для JS/TS/JSX/TSX</li>
-<li>Автоматическое исправление</li>
+<li>Отдельные проверки и запись форматирования</li>
 <li>Нет конфликтов между правилами</li></ul>
 <h4>TypeScript вместо Flow</h4>
 <ul><li>Полная типобезопасность через <code>typescript-eslint</code></li>

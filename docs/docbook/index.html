@@ -32,10 +32,10 @@
             <h1>@ytdev/linter</h1>
 <p>> Release note: <code>@ytdev/linter</code> is the target name for the upcoming package release. Until that release is published, verify usage through a local packed tarball.</p>
 <p><strong>Русская версия</strong> | <a href="./README.md">English</a></p>
-<p>Комплексная конфигурация ESLint для React и TypeScript проектов с интегрированной поддержкой Prettier.</p>
+<p>Комплексная конфигурация ESLint для React и TypeScript проектов с отдельной поддержкой форматирования Prettier.</p>
 <h2>Возможности</h2>
 <ul><li><strong>Типобезопасный линтинг</strong> с TypeScript ESLint</li>
-<li><strong>Интеграция Prettier</strong> для единообразного форматирования кода</li>
+<li><strong>Отдельное форматирование Prettier</strong> без ошибок <code>prettier/prettier</code> внутри ESLint</li>
 <li><strong>Поддержка React</strong> с правилами для хуков и JSX</li>
 <li><strong>Проверки доступности</strong> с jsx-a11y</li>
 <li><strong>Сортировка импортов</strong> и их организация</li>
@@ -83,12 +83,23 @@ export default [...strictConfig];
 <div class="code-block"><pre><code>{
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "fix": "ytdev-linter fix",
+    "format": "ytdev-linter format",
+    "format:check": "ytdev-linter format --check"
   }
 }
 </code></pre></div>
+<code>fix</code> запускает ESLint autofix с default non-Sonar config, затем Prettier. <code>format</code> запускает только Prettier. Sonar profiles остаются opt-in и не входят в default fix flow.
+<h3>Consumer Husky setup</h3>
+<p>Pre-commit hooks are opt-in and are never installed during package installation. To add the managed hook block to the current Git project:</p>
+<div class="code-block"><pre><code>npx ytdev-linter husky enable
+</code></pre></div>
+<p>To remove only the managed block and keep any custom hook content:</p>
+<div class="code-block"><pre><code>npx ytdev-linter husky disable
+</code></pre></div>
+<p>The generated block is marked with <code># @ytdev/linter begin</code> and <code># @ytdev/linter end</code>. It runs the local ESLint binary with <code>npx --no-install</code>, so it does not download packages during commit.</p>
 <h2>Доступные конфигурации</h2>
-<ul><li><strong>Base</strong> (<code>@ytdev/linter</code>) - JavaScript/TypeScript с Prettier</li>
+<ul><li><strong>Base</strong> (<code>@ytdev/linter</code>) - JavaScript/TypeScript semantic linting с отключением конфликтов Prettier</li>
 <li><strong>React</strong> (<code>@ytdev/linter/configs/react</code>) - Base + правила React</li>
 <li><strong>Strict</strong> (<code>@ytdev/linter/configs/strict</code>) - React + строгие правила именования и запрет any</li></ul>
 <h2>Содержимое пакета</h2>

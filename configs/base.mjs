@@ -1,4 +1,4 @@
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -35,5 +35,5 @@ export default [
     },
   },
   typescriptRule,
-  eslintPluginPrettierRecommended,
+  eslintConfigPrettier,
 ];

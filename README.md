@@ -2,14 +2,14 @@
 
 [Русская версия](./README_RU.md) | **English**
 
-A comprehensive ESLint configuration for React and TypeScript projects with integrated Prettier support.
+A comprehensive ESLint configuration for React and TypeScript projects with separate Prettier formatting support.
 
 > Release note: `@ytdev/linter` is the target name for the upcoming package release. Until that release is published, verify usage through a local packed tarball.
 
 ## Features
 
 - **Type-safe linting** with TypeScript ESLint
-- **Prettier integration** for consistent code formatting
+- **Separate Prettier formatting** for consistent code style without formatting-as-lint errors
 - **React support** with hooks and JSX rules
 - **Accessibility checks** with jsx-a11y
 - **Import sorting** and organization
@@ -100,10 +100,14 @@ Add to your `package.json`:
 {
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "fix": "ytdev-linter fix",
+    "format": "ytdev-linter format",
+    "format:check": "ytdev-linter format --check"
   }
 }
 ```
+
+`fix` runs ESLint autofix with the default non-Sonar config and then Prettier. `format` runs only Prettier. Sonar profiles are opt-in and are not part of the default fix flow.
 
 ### Consumer Husky Setup
 
@@ -123,7 +127,7 @@ The generated block is marked with `# @ytdev/linter begin` and `# @ytdev/linter 
 
 ## Available Configurations
 
-- **Base** (`@ytdev/linter`) - JavaScript/TypeScript with Prettier
+- **Base** (`@ytdev/linter`) - JavaScript/TypeScript semantic linting with Prettier conflict suppression
 - **React** (`@ytdev/linter/configs/react`) - Base + React rules
 - **Strict** (`@ytdev/linter/configs/strict`) - React + strict naming and no-any rules
 - **Sonar** (`@ytdev/linter/configs/sonar`) - Base + generated SonarJS executable rules
