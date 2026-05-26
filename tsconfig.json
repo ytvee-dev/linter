@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["configs/**/*", "eslint.config.mjs", "prettier.js"]
+}

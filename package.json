@@ -1,0 +1,100 @@
+{
+  "name": "@ytvee-dev/eslint-config-react",
+  "version": "1.0.4",
+  "description": "The general ESLint config for projects.",
+  "main": "eslint.config.mjs",
+  "exports": {
+    ".": "./eslint.config.mjs",
+    "./eslint.config": "./eslint.config.mjs",
+    "./configs/react": "./configs/react.mjs",
+    "./configs/react-sonar": "./configs/react-sonar.mjs",
+    "./configs/sonar": "./configs/sonar.mjs",
+    "./configs/sonar-catalog": "./configs/sonar-catalog.generated.json",
+    "./configs/strict": "./configs/strict.mjs",
+    "./prettier": "./prettier.js"
+  },
+  "keywords": [
+    "eslint",
+    "bestpractices"
+  ],
+  "author": "Yevgeniy Tyan",
+  "license": "MIT",
+  "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ytvee-dev/eslint-config-react.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "README.md",
+    "README_RU.md",
+    "LICENSE",
+    "configs",
+    "eslint.config.mjs",
+    "prettier.js"
+  ],
+  "scripts": {
+    "build": "echo \"Info: Build is unnecessary\"",
+    "build:docbook": "node build-docbook.js",
+    "generate:sonar": "node scripts/generate-sonar-catalog.mjs",
+    "lint": "eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives",
+    "lint:fix": "eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix",
+    "validate:sonar": "node scripts/validate-sonar-catalog.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "husky": "^9.1.7"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.33.0",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-sonarjs": "^4.0.3",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.2.2",
+    "typescript-eslint": "^8.39.0"
+  },
+  "peerDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.0.0",
+    "eslint-plugin-jsx-a11y": "^6.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.0.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-simple-import-sort": "^12.0.0",
+    "eslint-plugin-sonarjs": "^4.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.0.0",
+    "typescript": ">=5.2.0",
+    "typescript-eslint": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "eslint-plugin-jsx-a11y": {
+      "optional": true
+    },
+    "eslint-plugin-react": {
+      "optional": true
+    },
+    "eslint-plugin-react-hooks": {
+      "optional": true
+    },
+    "eslint-plugin-sonarjs": {
+      "optional": true
+    }
+  }
+}
