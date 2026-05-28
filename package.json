@@ -54,7 +54,8 @@
     "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check .",
     "lint:fix": "npm run fix",
     "validate:sonar": "node scripts/validate-sonar-catalog.mjs",
-    "verify:consumer:typescript": "node scripts/verify-consumer-typescript.mjs"
+    "verify:consumer": "node scripts/verify-consumer-package.mjs",
+    "verify:consumer:typescript": "node scripts/verify-consumer-package.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.19.19",
