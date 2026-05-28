@@ -1,6 +1,7 @@
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 
 export const importsRule = {
+  name: '@ytdev/linter/import-sort',
   plugins: {
     'simple-import-sort': simpleImportSort,
   },

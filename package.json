@@ -45,6 +45,7 @@
   ],
   "scripts": {
     "build": "echo \"Info: Build is unnecessary\"",
+    "audit:rules": "node scripts/audit-rule-duplicates.mjs",
     "build:docbook": "node build-docbook.js",
     "generate:sonar": "node scripts/generate-sonar-catalog.mjs",
     "lint": "eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives",
@@ -52,7 +53,8 @@
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
     "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check .",
     "lint:fix": "npm run fix",
-    "validate:sonar": "node scripts/validate-sonar-catalog.mjs"
+    "validate:sonar": "node scripts/validate-sonar-catalog.mjs",
+    "verify:consumer:typescript": "node scripts/verify-consumer-typescript.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.19.19",

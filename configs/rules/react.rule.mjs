@@ -7,6 +7,7 @@ const reactPluginConfig = reactPlugin;
 const reactHooksPlugin = reactHooks;
 
 export const reactRule = {
+  name: '@ytdev/linter/react',
   files: ['**/*.{jsx,tsx}'],
   plugins: {
     react: reactPluginConfig,

@@ -1,10 +1,10 @@
 export const typescriptRule = {
+  name: '@ytdev/linter/typescript',
   files: ['**/*.{ts,tsx}'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-function-return-type': 'error',
     '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-    '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {

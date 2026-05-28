@@ -16,6 +16,8 @@ const HOOK_COMMAND = 'npx --no-install ytdev-linter lint';
 const require = createRequire(import.meta.url);
 const DEFAULT_TARGETS = ['.'];
 const ESLINT_ARGS = ['--ext', '.js,.mjs,.ts,.tsx', '--report-unused-disable-directives'];
+const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.tsx']);
+const SKIPPED_SCAN_DIRECTORIES = new Set(['.git', '.next', 'build', 'coverage', 'dist', 'node_modules', 'out']);
 const ESLINT_CONFIG_FILES = [
   'eslint.config.js',
   'eslint.config.mjs',
@@ -82,12 +84,90 @@ function hasConsumerEslintConfig(cwd) {
   return ESLINT_CONFIG_FILES.some((fileName) => fs.existsSync(path.join(cwd, fileName)));
 }
 
-function getEslintConfigArgs() {
-  return hasConsumerEslintConfig(process.cwd()) ? [] : ['--config', PACKAGE_ESLINT_CONFIG];
+function hasConsumerTsconfig(cwd) {
+  return fs.existsSync(path.join(cwd, 'tsconfig.json'));
+}
+
+function isTypeScriptFilePath(filePath) {
+  return TYPESCRIPT_EXTENSIONS.has(path.extname(filePath).toLowerCase());
+}
+
+function directoryContainsTypeScript(dirPath) {
+  let entries;
+
+  try {
+    entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  } catch {
+    return false;
+  }
+
+  for (const entry of entries) {
+    const entryPath = path.join(dirPath, entry.name);
+
+    if (entry.isDirectory()) {
+      if (!SKIPPED_SCAN_DIRECTORIES.has(entry.name) && directoryContainsTypeScript(entryPath)) {
+        return true;
+      }
+
+      continue;
+    }
+
+    if (entry.isFile() && isTypeScriptFilePath(entryPath)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function targetContainsTypeScript(target, cwd) {
+  if (target.startsWith('-')) {
+    return false;
+  }
+
+  const targetPath = path.resolve(cwd, target);
+
+  if (!fs.existsSync(targetPath)) {
+    return /\.(ts|tsx)$/u.test(target);
+  }
+
+  const targetStat = fs.statSync(targetPath);
+
+  if (targetStat.isDirectory()) {
+    return directoryContainsTypeScript(targetPath);
+  }
+
+  return targetStat.isFile() && isTypeScriptFilePath(targetPath);
+}
+
+function assertFallbackTypeScriptReady(targets) {
+  const cwd = process.cwd();
+
+  if (hasConsumerEslintConfig(cwd) || hasConsumerTsconfig(cwd)) {
+    return;
+  }
+
+  if (!targets.some((target) => targetContainsTypeScript(target, cwd))) {
+    return;
+  }
+
+  throw new Error(
+    [
+      `${PACKAGE_NAME}: type-aware TypeScript linting requires a tsconfig.json in the consumer project root.`,
+      'Create a project tsconfig.json, lint JavaScript-only targets, or add a local eslint.config.* to control parserOptions yourself.',
+    ].join('\n'),
+  );
+}
+
+function getEslintConfigArgs(cwd) {
+  return hasConsumerEslintConfig(cwd) ? [] : ['--config', PACKAGE_ESLINT_CONFIG];
 }
 
 function lint(args) {
-  process.exitCode = runEslint([...getTargets(args), ...getEslintConfigArgs(), ...ESLINT_ARGS]);
+  const targets = getTargets(args);
+
+  assertFallbackTypeScriptReady(targets);
+  process.exitCode = runEslint([...targets, ...getEslintConfigArgs(process.cwd()), ...ESLINT_ARGS]);
 }
 
 function format(args) {
@@ -101,7 +181,10 @@ function format(args) {
 
 function fix(args) {
   const targets = getTargets(args);
-  const eslintStatus = runEslint([...targets, ...getEslintConfigArgs(), ...ESLINT_ARGS, '--fix']);
+
+  assertFallbackTypeScriptReady(targets);
+
+  const eslintStatus = runEslint([...targets, ...getEslintConfigArgs(process.cwd()), ...ESLINT_ARGS, '--fix']);
 
   if (eslintStatus !== 0) {
     process.exitCode = eslintStatus;

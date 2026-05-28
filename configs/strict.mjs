@@ -4,6 +4,7 @@ import base from './base.mjs';
 export default [
   ...base,
   {
+    name: '@ytdev/linter/strict',
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
