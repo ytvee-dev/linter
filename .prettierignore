@@ -1,9 +1,7 @@
 .yarn/
-docs/docbook/
 node_modules/
 .npm-cache/
 package-lock.json
 yarn.lock
-configs/sonar-catalog.generated.json
 configs/rules/sonar.generated.mjs
 sonarqube-frontend-rules.json

@@ -9,10 +9,11 @@
   "exports": {
     ".": "./eslint.config.mjs",
     "./eslint.config": "./eslint.config.mjs",
+    "./configs/default": "./configs/default.mjs",
+    "./configs/fix": "./configs/fix.mjs",
     "./configs/react": "./configs/react.mjs",
     "./configs/react-sonar": "./configs/react-sonar.mjs",
     "./configs/sonar": "./configs/sonar.mjs",
-    "./configs/sonar-catalog": "./configs/sonar-catalog.generated.json",
     "./configs/strict": "./configs/strict.mjs",
     "./prettier": "./prettier.js"
   },
@@ -25,7 +26,7 @@
   "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ytvee-dev/linter.git"
+    "url": "git+https://github.com/ytdev/linter.git"
   },
   "engines": {
     "node": ">=18"
@@ -46,20 +47,15 @@
   "scripts": {
     "build": "echo \"Info: Build is unnecessary\"",
     "audit:rules": "node scripts/audit-rule-duplicates.mjs",
-    "build:docbook": "node build-docbook.js",
-    "generate:sonar": "node scripts/generate-sonar-catalog.mjs",
-    "lint": "eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives",
-    "fix": "eslint . --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --write .",
+    "lint": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives",
+    "fix": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --write .",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
     "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check .",
     "lint:fix": "npm run fix",
-    "validate:sonar": "node scripts/validate-sonar-catalog.mjs",
-    "verify:consumer": "node scripts/verify-consumer-package.mjs",
-    "verify:consumer:typescript": "node scripts/verify-consumer-package.mjs"
+    "verify:consumer": "node scripts/verify-consumer-package.mjs"
   },
   "devDependencies": {
-    "@types/node": "^22.19.19",
-    "husky": "^9.1.7"
+    "@types/node": "^22.19.19"
   },
   "dependencies": {
     "@eslint/js": "^9.39.4",

@@ -41,14 +41,12 @@ export const sonarCommonRules = {
   'sonarjs/cors': 'warn',
   'sonarjs/csrf': 'warn',
   'sonarjs/cyclomatic-complexity': 'error',
-  'sonarjs/declarations-in-global-scope': 'error',
   'sonarjs/destructuring-assignment-syntax': 'warn',
   'sonarjs/disabled-timeout': 'error',
   'sonarjs/dynamically-constructed-templates': 'error',
   'sonarjs/elseif-without-else': 'error',
   'sonarjs/encryption-secure-mode': 'error',
   'sonarjs/expression-complexity': 'error',
-  'sonarjs/file-header': 'error',
   'sonarjs/file-name-differ-from-class': 'warn',
   'sonarjs/file-permissions': 'warn',
   'sonarjs/file-uploads': 'error',
@@ -261,7 +259,7 @@ export const sonarTypeCheckedRules = {
 
 export const sonarRules = [
   {
-    name: '@ytvee-dev/sonarjs/common',
+    name: '@ytdev/linter/sonarjs/common',
     files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
     plugins: {
       sonarjs: sonarPlugin,
@@ -269,7 +267,7 @@ export const sonarRules = [
     rules: sonarCommonRules,
   },
   {
-    name: '@ytvee-dev/sonarjs/type-checked',
+    name: '@ytdev/linter/sonarjs/type-checked',
     files: ['**/*.{ts,tsx}'],
     rules: sonarTypeCheckedRules,
   },

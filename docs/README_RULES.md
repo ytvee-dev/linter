@@ -31,9 +31,9 @@ The linter doesn't check auxiliary artifacts and build files:
 
 The SonarQube import is represented by two generated artifacts:
 
-- `configs/sonar-catalog.generated.json` contains compact metadata for all 1095 imported frontend rules.
+- `configs/rules/sonar.generated.mjs` contains the executable SonarJS rule configuration used by public Sonar profiles.
 - `configs/rules/sonar.generated.mjs` contains the deduplicated executable ESLint rule profile.
-- `coveredByProfiles` inside the generated catalog shows which public profiles already execute a mapped ESLint rule.
+- Only rules with reliable ESLint/SonarJS implementations are executed.
 
 Coverage summary:
 
@@ -42,7 +42,7 @@ Coverage summary:
 - `metadata-only`: 479 catalog records without a reliable ESLint execution path in this package.
 - `deprecated`: 67 SonarQube rules retained as metadata but never enabled.
 
-The executable Sonar profile enables 251 unique `sonarjs/*` rules. Rules that require type information are scoped to TypeScript files. CSS and HTML/Web SonarQube rules are metadata-only until a supported analyzer path is added. React-specific mappings such as JSX and a11y equivalents are reflected in `coveredByProfiles` and are available through `react` and `react-sonar`, not plain `sonar`.
+The executable Sonar profile enables 251 unique `sonarjs/*` rules. Rules that require type information are scoped to TypeScript files. CSS and HTML/Web SonarQube rules are not executed until a supported analyzer path is added. React-specific mappings such as JSX and a11y equivalents are available through `react` and `react-sonar`, not plain `sonar`.
 
 Usage:
 

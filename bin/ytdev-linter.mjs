@@ -9,10 +9,10 @@ import { fileURLToPath } from 'node:url';
 
 const PACKAGE_NAME = '@ytdev/linter';
 const PACKAGE_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const PACKAGE_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'eslint.config.mjs');
+const PACKAGE_DEFAULT_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'eslint.config.mjs');
+const PACKAGE_FIX_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'configs', 'fix.mjs');
 const BEGIN_MARKER = '# @ytdev/linter begin';
 const END_MARKER = '# @ytdev/linter end';
-const HOOK_COMMAND = 'npx --no-install ytdev-linter lint';
 const require = createRequire(import.meta.url);
 const DEFAULT_TARGETS = ['.'];
 const ESLINT_ARGS = ['--ext', '.js,.mjs,.ts,.tsx', '--report-unused-disable-directives'];
@@ -40,10 +40,10 @@ Usage:
   ytdev-linter husky disable
 
 Commands:
-  lint             Run ESLint for the provided paths, or "." by default.
+  lint             Run ESLint with the default React + SonarJS profile when no local ESLint config exists.
   format           Run Prettier write for the provided paths, or "." by default.
   format --check   Run Prettier check for the provided paths, or "." by default.
-  fix              Run ESLint autofix for the default non-Sonar config, then Prettier write.
+  fix              Run non-Sonar ESLint autofix, then Prettier write.
   init --husky      Enable the managed pre-commit hook in the current project.
   husky enable     Add or update the managed pre-commit hook block.
   husky disable    Remove only the managed pre-commit hook block.
@@ -82,6 +82,69 @@ function runEslint(args) {
 
 function hasConsumerEslintConfig(cwd) {
   return ESLINT_CONFIG_FILES.some((fileName) => fs.existsSync(path.join(cwd, fileName)));
+}
+
+function readPackageJson(cwd) {
+  const packageJsonPath = path.join(cwd, 'package.json');
+
+  if (!fs.existsSync(packageJsonPath)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function detectPackageManager(cwd) {
+  const packageJson = readPackageJson(cwd);
+  const packageManager = typeof packageJson?.packageManager === 'string' ? packageJson.packageManager : '';
+
+  if (packageManager.startsWith('yarn@')) {
+    return packageManager.includes('yarn@1.') ? 'yarn-classic' : 'yarn-berry';
+  }
+
+  if (packageManager.startsWith('pnpm@')) {
+    return 'pnpm';
+  }
+
+  if (packageManager.startsWith('npm@')) {
+    return 'npm';
+  }
+
+  if (fs.existsSync(path.join(cwd, 'yarn.lock'))) {
+    return 'yarn-classic';
+  }
+
+  if (fs.existsSync(path.join(cwd, 'pnpm-lock.yaml'))) {
+    return 'pnpm';
+  }
+
+  if (fs.existsSync(path.join(cwd, 'package-lock.json')) || fs.existsSync(path.join(cwd, 'npm-shrinkwrap.json'))) {
+    return 'npm';
+  }
+
+  return 'npm';
+}
+
+function createHookCommand(cwd) {
+  const packageManager = detectPackageManager(cwd);
+
+  if (packageManager === 'yarn-berry') {
+    return 'yarn exec ytdev-linter lint';
+  }
+
+  if (packageManager === 'yarn-classic') {
+    return 'yarn run -s ytdev-linter lint';
+  }
+
+  if (packageManager === 'pnpm') {
+    return 'pnpm exec ytdev-linter lint';
+  }
+
+  return 'npx --no-install ytdev-linter lint';
 }
 
 function hasConsumerTsconfig(cwd) {
@@ -159,15 +222,19 @@ function assertFallbackTypeScriptReady(targets) {
   );
 }
 
-function getEslintConfigArgs(cwd) {
-  return hasConsumerEslintConfig(cwd) ? [] : ['--config', PACKAGE_ESLINT_CONFIG];
+function getEslintConfigArgs(cwd, fallbackConfigPath) {
+  return hasConsumerEslintConfig(cwd) ? [] : ['--config', fallbackConfigPath];
 }
 
 function lint(args) {
   const targets = getTargets(args);
 
   assertFallbackTypeScriptReady(targets);
-  process.exitCode = runEslint([...targets, ...getEslintConfigArgs(process.cwd()), ...ESLINT_ARGS]);
+  process.exitCode = runEslint([
+    ...targets,
+    ...getEslintConfigArgs(process.cwd(), PACKAGE_DEFAULT_ESLINT_CONFIG),
+    ...ESLINT_ARGS,
+  ]);
 }
 
 function format(args) {
@@ -184,7 +251,12 @@ function fix(args) {
 
   assertFallbackTypeScriptReady(targets);
 
-  const eslintStatus = runEslint([...targets, ...getEslintConfigArgs(process.cwd()), ...ESLINT_ARGS, '--fix']);
+  const eslintStatus = runEslint([
+    ...targets,
+    ...getEslintConfigArgs(process.cwd(), PACKAGE_FIX_ESLINT_CONFIG),
+    ...ESLINT_ARGS,
+    '--fix',
+  ]);
 
   if (eslintStatus !== 0) {
     process.exitCode = eslintStatus;
@@ -208,12 +280,31 @@ function assertGitProject(cwd) {
   }
 }
 
+function configureHuskyHookPath(cwd) {
+  const result = spawnSync('git', ['config', 'core.hooksPath', '.husky'], {
+    cwd,
+    stdio: 'pipe',
+    encoding: 'utf8',
+  });
+
+  if (result.error) {
+    throw new Error(`Cannot configure Husky hooks: ${result.error.message}`);
+  }
+
+  if ((result.status ?? 1) !== 0) {
+    const output = [result.stdout, result.stderr].filter(Boolean).join('\n').trim();
+    const details = output ? ` ${output}` : '';
+
+    throw new Error(`Cannot configure Husky hooks with git config.${details}`);
+  }
+}
+
 function getHookPath(cwd) {
   return path.join(cwd, '.husky', 'pre-commit');
 }
 
-function createManagedBlock(eol) {
-  return [BEGIN_MARKER, HOOK_COMMAND, END_MARKER].join(eol);
+function createManagedBlock(cwd, eol) {
+  return [BEGIN_MARKER, createHookCommand(cwd), END_MARKER].join(eol);
 }
 
 function removeManagedBlock(content) {
@@ -238,12 +329,13 @@ function writeHook(hookPath, content) {
 
 function enableHusky(cwd) {
   assertGitProject(cwd);
+  configureHuskyHookPath(cwd);
 
   const hookPath = getHookPath(cwd);
   const existing = fs.existsSync(hookPath) ? fs.readFileSync(hookPath, 'utf8') : '';
   const eol = getEol(existing);
   const userContent = removeManagedBlock(existing);
-  const managedBlock = createManagedBlock(eol);
+  const managedBlock = createManagedBlock(cwd, eol);
   const nextContent = userContent ? `${userContent}${eol}${eol}${managedBlock}${eol}` : `${managedBlock}${eol}`;
 
   writeHook(hookPath, nextContent);

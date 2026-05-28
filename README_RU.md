@@ -1,7 +1,5 @@
 # @ytdev/linter
 
-> Release note: `@ytdev/linter` is the target name for the upcoming package release. Until that release is published, verify usage through a local packed tarball.
-
 **Русская версия** | [English](./README.md)
 
 Комплексная конфигурация ESLint для React и TypeScript проектов с отдельной поддержкой форматирования Prettier.
@@ -40,7 +38,7 @@ npx ytdev-linter format
 npx ytdev-linter format --check
 ```
 
-`lint` и `fix` используют локальный `eslint.config.*`, если он есть. Если в проекте нет ESLint flat config, они используют default non-Sonar config из пакета, поэтому базовый JavaScript/TypeScript frontend project может начать работу только с команды установки. Для TypeScript проектов всё равно нужен валидный project `tsconfig.json`, чтобы type-aware rules работали корректно.
+`lint` и `fix` используют локальный `eslint.config.*`, если он есть. Если в проекте нет ESLint flat config, `lint` использует default React + SonarJS профиль пакета, а `fix` использует non-Sonar React профиль перед запуском Prettier. Для TypeScript проектов всё равно нужен валидный project `tsconfig.json`, чтобы type-aware rules работали корректно.
 
 ### Добавьте скрипты
 
@@ -57,7 +55,7 @@ npx ytdev-linter format --check
 }
 ```
 
-`fix` запускает ESLint autofix через default non-Sonar flow, затем Prettier. `format` запускает только Prettier. Sonar profiles остаются opt-in и не входят в default fix flow.
+`fix` запускает ESLint autofix через non-Sonar flow, затем Prettier. `format` запускает только Prettier. SonarJS проверки входят в default lint flow, но не входят в default fix flow.
 
 ### Опциональная конфигурация ESLint
 
@@ -119,7 +117,7 @@ npx ytdev-linter husky enable
 npx ytdev-linter husky disable
 ```
 
-Generated block помечен строками `# @ytdev/linter begin` и `# @ytdev/linter end`. Он запускает `npx --no-install ytdev-linter lint`, поэтому использует тот же zero-config fallback и не скачивает пакеты во время commit.
+Generated block помечен строками `# @ytdev/linter begin` и `# @ytdev/linter end`. Команда выбирается по package manager проекта-потребителя: npm проекты используют `npx --no-install`, Yarn проекты используют `yarn`, pnpm проекты используют `pnpm exec`.
 
 ## Доступные конфигурации
 
@@ -131,7 +129,7 @@ Generated block помечен строками `# @ytdev/linter begin` и `# @y
 
 npm-пакет намеренно содержит только runtime/public surface: `README.md`, `README_RU.md`, `LICENSE`, `configs`, `eslint.config.mjs` и `prettier.js`.
 
-Документация репозитория, roadmaps, scripts, generated docbook pages, `.husky` и raw refresh artifacts остаются в репозитории, но не входят в npm tarball. `configs/sonar-catalog.generated.json` остаётся в пакете намеренно, потому что экспортируется как `@ytdev/linter/configs/sonar-catalog`.
+Verification scripts и исходная документация остаются в репозитории, но не входят в npm tarball.
 
 ## Требования
 
@@ -143,20 +141,20 @@ npm-пакет намеренно содержит только runtime/public s
 
 Полная документация также доступна в папке `/docs`:
 
-- [Полный справочник правил](https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md) ([EN](https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES.md))
-- [Обзор стайлгайда](https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE_RU.md) ([EN](https://github.com/ytvee-dev/linter/blob/main/docs/README_STYLEGUIDE.md))
-- [Руководство по профилям](https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES_RU.md) ([EN](https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES.md))
+- [Полный справочник правил](https://github.com/ytdev/linter/blob/main/docs/README_RULES_RU.md) ([EN](https://github.com/ytdev/linter/blob/main/docs/README_RULES.md))
+- [Обзор стайлгайда](https://github.com/ytdev/linter/blob/main/docs/README_STYLEGUIDE_RU.md) ([EN](https://github.com/ytdev/linter/blob/main/docs/README_STYLEGUIDE.md))
+- [Руководство по профилям](https://github.com/ytdev/linter/blob/main/docs/PROFILES_RU.md) ([EN](https://github.com/ytdev/linter/blob/main/docs/PROFILES.md))
 
 ## Лицензия
 
-MIT © [YT-Dev](https://github.com/ytvee-dev)
+MIT © [YT-Dev](https://github.com/ytdev)
 
 ## Ссылки
 
 - [NPM пакет](https://www.npmjs.com/package/@ytdev/linter)
-- [GitHub репозиторий](https://github.com/ytvee-dev/linter)
-- [Файлы документации](https://github.com/ytvee-dev/linter/tree/main/docs)
-- [Сообщить о проблеме](https://github.com/ytvee-dev/linter/issues)
+- [GitHub репозиторий](https://github.com/ytdev/linter)
+- [Файлы документации](https://github.com/ytdev/linter/tree/main/docs)
+- [Сообщить о проблеме](https://github.com/ytdev/linter/issues)
 
 ## SonarQube profiles
 
@@ -164,6 +162,5 @@ Added opt-in SonarQube integration:
 
 - `@ytdev/linter/configs/sonar` - base profile plus generated executable SonarJS rules.
 - `@ytdev/linter/configs/react-sonar` - React profile plus generated executable SonarJS rules and React/a11y equivalents already covered by the React profile.
-- `@ytdev/linter/configs/sonar-catalog` - compact metadata catalog for all imported SonarQube frontend rules.
 
-`configs/sonar-catalog.generated.json` is the canonical runtime metadata catalog in this repository. A raw `sonarqube-frontend-rules.json` export is only an optional refresh artifact when it is present. ESLint executes only rules that have a reliable ESLint/SonarJS implementation. CSS and HTML/Web SonarQube rules are kept as metadata-only records, and `coveredByProfiles` shows which public profiles already execute each mapped rule.
+SonarQube-compatible execution is provided through `eslint-plugin-sonarjs`. The runtime source of truth is `configs/rules/sonar.generated.mjs`, which contains the executable SonarJS rule configuration used by `sonar`, `react-sonar`, and the default CLI lint profile.

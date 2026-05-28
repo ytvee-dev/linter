@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const WORK_DIR = path.join(ROOT_DIR, 'tmp', 'phase9-consumer-fixtures');
 const PACK_DIR = path.join(WORK_DIR, 'pack');
+const YARN_CLI_PATH = path.join(ROOT_DIR, '.yarn', 'releases', 'yarn-4.9.1.cjs');
 const MANAGED_BEGIN_MARKER = '# @ytdev/linter begin';
 const MANAGED_END_MARKER = '# @ytdev/linter end';
 const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -20,6 +21,7 @@ function run(command, args, options = {}) {
   const result = spawnSync(commandFile, commandArgs, {
     cwd: options.cwd || ROOT_DIR,
     encoding: 'utf8',
+    env: { ...process.env, ...options.env },
     stdio: options.capture ? 'pipe' : 'inherit',
   });
 
@@ -51,6 +53,12 @@ function assertFailure(result, label) {
   }
 }
 
+function runYarn(args, options = {}) {
+  assert(fs.existsSync(YARN_CLI_PATH), `Yarn verification requires ${YARN_CLI_PATH}.`);
+
+  return run(process.execPath, [YARN_CLI_PATH, ...args], options);
+}
+
 function writeFile(filePath, content) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, content, 'utf8');
@@ -77,6 +85,21 @@ function installPackedPackage(fixtureDir, tarballPath) {
   assertSuccess(
     run(npmBin, ['install', '--no-audit', '--ignore-scripts', '--save-dev', tarballPath], { cwd: fixtureDir }),
     `npm install in ${path.basename(fixtureDir)}`,
+  );
+}
+
+function installPackedPackageWithYarn(fixtureDir, tarballPath) {
+  assertSuccess(runYarn(['--version'], { capture: true }), 'yarn availability check');
+  writeFile(path.join(fixtureDir, 'yarn.lock'), '');
+  writeFile(
+    path.join(fixtureDir, '.yarnrc.yml'),
+    'cacheFolder: .yarn/cache\nenableGlobalCache: false\nglobalFolder: .yarn/global\nnodeLinker: node-modules\n',
+  );
+  const tarballRelativePath = path.relative(fixtureDir, tarballPath).replaceAll('\\', '/');
+  const tarballSpec = `@ytdev/linter@file:${tarballRelativePath}`;
+  assertSuccess(
+    runYarn(['add', '--dev', tarballSpec], { cwd: fixtureDir }),
+    `yarn add in ${path.basename(fixtureDir)}`,
   );
 }
 
@@ -108,18 +131,25 @@ function packCurrentPackage() {
 function assertExpectedTarballSurface(files) {
   const filePaths = files.map((file) => file.path);
   const forbiddenPrefixes = ['scripts/', 'tmp/', 'docs/', '.husky/'];
-  const forbiddenFiles = new Set(['ROADMAP.md', 'SONAR_ROADMAP.md', 'index.html', 'build-docbook.js']);
+  const forbiddenFiles = new Set([
+    'ROADMAP.md',
+    'SONAR_ROADMAP.md',
+    'index.html',
+    'build-docbook.js',
+    'configs/sonar-catalog.generated.json',
+  ]);
   const requiredFiles = [
     'LICENSE',
     'README.md',
     'README_RU.md',
     'bin/ytdev-linter.mjs',
     'configs/base.mjs',
+    'configs/default.mjs',
+    'configs/fix.mjs',
     'configs/react.mjs',
     'configs/strict.mjs',
     'configs/sonar.mjs',
     'configs/react-sonar.mjs',
-    'configs/sonar-catalog.generated.json',
     'eslint.config.mjs',
     'package.json',
     'prettier.js',
@@ -232,6 +262,62 @@ function verifyTypeScript(tarballPath) {
   );
 }
 
+function verifyDefaultSonarFailure(tarballPath) {
+  const fixtureDir = createFixture('default-sonar-failure');
+
+  writeFile(
+    path.join(fixtureDir, 'src', 'index.js'),
+    [
+      "export const first = 'duplicate-literal';",
+      "export const second = 'duplicate-literal';",
+      "export const third = 'duplicate-literal';",
+      "export const fourth = 'duplicate-literal';",
+      '',
+    ].join('\n'),
+  );
+  installPackedPackage(fixtureDir, tarballPath);
+
+  const result = run(npxBin, ['--no-install', 'ytdev-linter', 'lint', 'src/index.js'], {
+    capture: true,
+    cwd: fixtureDir,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+
+  assertFailure(result, 'default SonarJS fixture lint');
+  assert(
+    output.includes('sonarjs/no-duplicate-string'),
+    'Default lint did not report the expected SonarJS no-duplicate-string rule.',
+  );
+}
+
+function verifyYarnJsOnly(tarballPath) {
+  const fixtureDir = createFixture('yarn-js-only');
+  const indexPath = path.join(fixtureDir, 'src', 'index.js');
+
+  writeFile(indexPath, 'export function greet(name) {return `Hello ${name}`;}\n');
+  installPackedPackageWithYarn(fixtureDir, tarballPath);
+  assertSuccess(runYarn(['exec', 'ytdev-linter', '--help'], { cwd: fixtureDir }), 'Yarn CLI help');
+  assertSuccess(
+    runYarn(['exec', 'ytdev-linter', 'lint', 'src/index.js'], { cwd: fixtureDir }),
+    'Yarn JS-only fixture lint',
+  );
+  assertSuccess(
+    runYarn(['exec', 'ytdev-linter', 'format', '--check', 'package.json'], { cwd: fixtureDir }),
+    'Yarn JS-only fixture format check',
+  );
+  assertSuccess(
+    runYarn(['exec', 'ytdev-linter', 'fix', 'src/index.js'], { cwd: fixtureDir }),
+    'Yarn JS-only fixture fix',
+  );
+
+  const fixedSource = fs.readFileSync(indexPath, 'utf8');
+
+  assert(
+    fixedSource === 'export function greet(name) {\n  return `Hello ${name}`;\n}\n',
+    'Yarn JS-only fixture fix did not run Prettier as expected.',
+  );
+}
+
 function verifyReactTypeScript(tarballPath) {
   const fixtureDir = createFixture('react-typescript');
 
@@ -289,7 +375,6 @@ function verifyExports(tarballPath) {
     "await import('@ytdev/linter/configs/strict');",
     "await import('@ytdev/linter/configs/sonar');",
     "await import('@ytdev/linter/configs/react-sonar');",
-    "await import('@ytdev/linter/configs/sonar-catalog', { with: { type: 'json' } });",
     "await import('@ytdev/linter/prettier');",
     "console.log('exports ok');",
   ].join('\n');
@@ -336,19 +421,76 @@ function verifyHuskyExistingHook(tarballPath) {
   writeFile(hookPath, userHookContent);
 
   assertSuccess(run(npxBin, ['--no-install', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }), 'Husky enable');
-  assertManagedHookState(hookPath, { hasManagedBlock: true, markerCount: 1, userHookContent });
+  assertManagedHookState(hookPath, {
+    expectedCommand: 'npx --no-install ytdev-linter lint',
+    hasManagedBlock: true,
+    markerCount: 1,
+    userHookContent,
+  });
+  assertGitHooksPath(fixtureDir);
 
   assertSuccess(
     run(npxBin, ['--no-install', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }),
     'Husky enable idempotency',
   );
-  assertManagedHookState(hookPath, { hasManagedBlock: true, markerCount: 1, userHookContent });
+  assertManagedHookState(hookPath, {
+    expectedCommand: 'npx --no-install ytdev-linter lint',
+    hasManagedBlock: true,
+    markerCount: 1,
+    userHookContent,
+  });
 
   assertSuccess(
     run(npxBin, ['--no-install', 'ytdev-linter', 'husky', 'disable'], { cwd: fixtureDir }),
     'Husky disable',
   );
   assertManagedHookState(hookPath, { hasManagedBlock: false, markerCount: 0, userHookContent });
+}
+
+function verifyYarnHuskyExistingHook(tarballPath) {
+  const fixtureDir = createFixture('yarn-husky-existing-hook');
+  const hookPath = path.join(fixtureDir, '.husky', 'pre-commit');
+  const userHookContent = '#!/usr/bin/env sh\necho user-hook\n';
+
+  writeJson(path.join(fixtureDir, 'package.json'), {
+    name: 'phase9-yarn-husky-existing-hook',
+    packageManager: 'yarn@4.9.1',
+    private: true,
+    type: 'module',
+  });
+  installPackedPackageWithYarn(fixtureDir, tarballPath);
+  assertSuccess(run('git', ['init'], { cwd: fixtureDir }), 'git init in Yarn Husky fixture');
+  writeFile(hookPath, userHookContent);
+
+  assertSuccess(runYarn(['exec', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }), 'Yarn Husky enable');
+  assertManagedHookState(hookPath, {
+    expectedCommand: 'yarn exec ytdev-linter lint',
+    hasManagedBlock: true,
+    markerCount: 1,
+    userHookContent,
+  });
+  assertGitHooksPath(fixtureDir);
+
+  assertSuccess(
+    runYarn(['exec', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }),
+    'Yarn Husky enable idempotency',
+  );
+  assertManagedHookState(hookPath, {
+    expectedCommand: 'yarn exec ytdev-linter lint',
+    hasManagedBlock: true,
+    markerCount: 1,
+    userHookContent,
+  });
+
+  assertSuccess(runYarn(['exec', 'ytdev-linter', 'husky', 'disable'], { cwd: fixtureDir }), 'Yarn Husky disable');
+  assertManagedHookState(hookPath, { hasManagedBlock: false, markerCount: 0, userHookContent });
+}
+
+function assertGitHooksPath(fixtureDir) {
+  const result = run('git', ['config', '--get', 'core.hooksPath'], { capture: true, cwd: fixtureDir });
+
+  assertSuccess(result, 'git core.hooksPath read');
+  assert(result.stdout.trim() === '.husky', `Expected core.hooksPath to be .husky, received ${result.stdout.trim()}.`);
 }
 
 function assertManagedHookState(hookPath, options) {
@@ -371,6 +513,10 @@ function assertManagedHookState(hookPath, options) {
       content.includes(MANAGED_END_MARKER) === options.hasManagedBlock,
     'Husky managed block marker state is incorrect.',
   );
+
+  if (options.expectedCommand) {
+    assert(content.includes(options.expectedCommand), `Husky hook does not include ${options.expectedCommand}.`);
+  }
 }
 
 fs.rmSync(WORK_DIR, { force: true, recursive: true });
@@ -380,12 +526,15 @@ const tarballPath = packCurrentPackage();
 
 verifyJsOnly(tarballPath);
 verifyTypeScript(tarballPath);
+verifyDefaultSonarFailure(tarballPath);
+verifyYarnJsOnly(tarballPath);
 verifyReactTypeScript(tarballPath);
 verifySonar(tarballPath);
 verifyReactSonar(tarballPath);
 verifyExports(tarballPath);
 verifyMissingTsconfig(tarballPath);
 verifyHuskyExistingHook(tarballPath);
+verifyYarnHuskyExistingHook(tarballPath);
 
 fs.rmSync(WORK_DIR, { force: true, recursive: true });
 
