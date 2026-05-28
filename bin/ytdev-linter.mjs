@@ -11,6 +11,7 @@ const PACKAGE_NAME = '@ytdev/linter';
 const PACKAGE_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PACKAGE_DEFAULT_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'eslint.config.mjs');
 const PACKAGE_FIX_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'configs', 'fix.mjs');
+const PACKAGE_PRETTIER_CONFIG = path.join(PACKAGE_ROOT, 'prettier.js');
 const BEGIN_MARKER = '# @ytdev/linter begin';
 const END_MARKER = '# @ytdev/linter end';
 const require = createRequire(import.meta.url);
@@ -247,7 +248,7 @@ function format(args) {
   const targets = isCheck ? getTargets(rest) : getTargets(args);
   const prettierMode = isCheck ? '--check' : '--write';
 
-  process.exitCode = runPrettier([prettierMode, ...targets]);
+  process.exitCode = runPrettier(['--config', PACKAGE_PRETTIER_CONFIG, prettierMode, ...targets]);
 }
 
 function fix(args) {
@@ -267,7 +268,7 @@ function fix(args) {
     return;
   }
 
-  process.exitCode = runPrettier(['--write', ...targets]);
+  process.exitCode = runPrettier(['--config', PACKAGE_PRETTIER_CONFIG, '--write', ...targets]);
 }
 
 function escapeRegExp(value) {

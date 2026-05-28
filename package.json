@@ -38,7 +38,6 @@
   },
   "files": [
     "README.md",
-    "README_RU.md",
     "LICENSE",
     "bin",
     "configs",
@@ -52,7 +51,7 @@
     "fix": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --write .",
     "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
     "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check .",
-    "lint:fix": "npm run fix",
+    "lint:fix": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --write .",
     "verify:consumer": "node scripts/verify-consumer-package.mjs"
   },
   "devDependencies": {

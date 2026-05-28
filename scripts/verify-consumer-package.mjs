@@ -1,27 +1,34 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const WORK_DIR = path.join(ROOT_DIR, 'tmp', 'phase9-consumer-fixtures');
+const WORK_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ytdev-linter-consumer-fixtures-'));
 const PACK_DIR = path.join(WORK_DIR, 'pack');
 const YARN_CLI_PATH = path.join(ROOT_DIR, '.yarn', 'releases', 'yarn-4.9.1.cjs');
 const MANAGED_BEGIN_MARKER = '# @ytdev/linter begin';
 const MANAGED_END_MARKER = '# @ytdev/linter end';
-const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const npxBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+const nodeBinDir = path.dirname(process.execPath);
+const npmBin = process.platform === 'win32' ? path.join(nodeBinDir, 'npm.cmd') : 'npm';
+const npxBin = process.platform === 'win32' ? path.join(nodeBinDir, 'npx.cmd') : 'npx';
+
+function quoteCmdArg(value) {
+  return `"${value.replace(/%/g, '%%').replace(/([()!^"<>&|])/g, '^$1')}"`;
+}
 
 function run(command, args, options = {}) {
-  const commandFile =
-    process.platform === 'win32' && command.endsWith('.cmd') ? process.env.ComSpec || 'cmd.exe' : command;
-  const commandArgs =
-    process.platform === 'win32' && command.endsWith('.cmd') ? ['/d', '/s', '/c', [command, ...args].join(' ')] : args;
+  const isWindowsCmd = process.platform === 'win32' && command.endsWith('.cmd');
+  const commandLine = [command, ...args].map(quoteCmdArg).join(' ');
+  const commandFile = isWindowsCmd ? commandLine : command;
+  const commandArgs = isWindowsCmd ? [] : args;
   const result = spawnSync(commandFile, commandArgs, {
     cwd: options.cwd || ROOT_DIR,
     encoding: 'utf8',
     env: { ...process.env, ...options.env },
+    shell: isWindowsCmd,
     stdio: options.capture ? 'pipe' : 'inherit',
   });
 
@@ -141,7 +148,6 @@ function assertExpectedTarballSurface(files) {
   const requiredFiles = [
     'LICENSE',
     'README.md',
-    'README_RU.md',
     'bin/ytdev-linter.mjs',
     'configs/base.mjs',
     'configs/default.mjs',
@@ -316,6 +322,24 @@ function verifyYarnJsOnly(tarballPath) {
   assert(
     fixedSource === 'export function greet(name) {\n  return `Hello ${name}`;\n}\n',
     'Yarn JS-only fixture fix did not run Prettier as expected.',
+  );
+}
+
+function verifyPackagePrettierConfig(tarballPath) {
+  const fixtureDir = createFixture('package-prettier-config');
+
+  writeFile(path.join(fixtureDir, 'src', 'index.js'), 'export const value = "double-quoted";\n');
+  installPackedPackage(fixtureDir, tarballPath);
+
+  const result = run(npxBin, ['--no-install', 'ytdev-linter', 'format', '--check', 'src/index.js'], {
+    capture: true,
+    cwd: fixtureDir,
+  });
+
+  assertFailure(result, 'package Prettier config fixture format check');
+  assert(
+    `${result.stdout}\n${result.stderr}`.includes('src/index.js'),
+    'Package Prettier config fixture did not check the expected source file.',
   );
 }
 
@@ -574,25 +598,27 @@ function assertManagedHookState(hookPath, options) {
   }
 }
 
-fs.rmSync(WORK_DIR, { force: true, recursive: true });
-fs.mkdirSync(WORK_DIR, { recursive: true });
+try {
+  fs.mkdirSync(WORK_DIR, { recursive: true });
 
-const tarballPath = packCurrentPackage();
+  const tarballPath = packCurrentPackage();
 
-verifyJsOnly(tarballPath);
-verifyTypeScript(tarballPath);
-verifyDefaultSonarFailure(tarballPath);
-verifyYarnJsOnly(tarballPath);
-verifyReactTypeScript(tarballPath);
-verifySonar(tarballPath);
-verifyReactSonar(tarballPath);
-verifyStrictReact(tarballPath);
-verifyExports(tarballPath);
-verifyMissingTsconfig(tarballPath);
-verifyHuskyExistingHook(tarballPath);
-verifyYarnHuskyExistingHook(tarballPath);
-verifyYarnBerryHuskyWithoutPackageManager(tarballPath);
+  verifyJsOnly(tarballPath);
+  verifyTypeScript(tarballPath);
+  verifyDefaultSonarFailure(tarballPath);
+  verifyYarnJsOnly(tarballPath);
+  verifyPackagePrettierConfig(tarballPath);
+  verifyReactTypeScript(tarballPath);
+  verifySonar(tarballPath);
+  verifyReactSonar(tarballPath);
+  verifyStrictReact(tarballPath);
+  verifyExports(tarballPath);
+  verifyMissingTsconfig(tarballPath);
+  verifyHuskyExistingHook(tarballPath);
+  verifyYarnHuskyExistingHook(tarballPath);
+  verifyYarnBerryHuskyWithoutPackageManager(tarballPath);
 
-fs.rmSync(WORK_DIR, { force: true, recursive: true });
-
-console.log('Consumer package fixture verification passed.');
+  console.log('Consumer package fixture verification passed.');
+} finally {
+  fs.rmSync(WORK_DIR, { force: true, recursive: true });
+}
