@@ -14,6 +14,7 @@
     "./configs/react": "./configs/react.mjs",
     "./configs/react-sonar": "./configs/react-sonar.mjs",
     "./configs/sonar": "./configs/sonar.mjs",
+    "./configs/strict-react": "./configs/strict-react.mjs",
     "./configs/strict": "./configs/strict.mjs",
     "./prettier": "./prettier.js"
   },

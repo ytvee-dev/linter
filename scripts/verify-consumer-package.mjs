@@ -148,6 +148,7 @@ function assertExpectedTarballSurface(files) {
     'configs/fix.mjs',
     'configs/react.mjs',
     'configs/strict.mjs',
+    'configs/strict-react.mjs',
     'configs/sonar.mjs',
     'configs/react-sonar.mjs',
     'eslint.config.mjs',
@@ -364,6 +365,37 @@ function verifyReactSonar(tarballPath) {
   );
 }
 
+function verifyStrictReact(tarballPath) {
+  const fixtureDir = createFixture('strict-react');
+
+  writeTsconfig(fixtureDir, { jsx: 'react-jsx' });
+  writeJsxTypes(fixtureDir);
+  writeFile(
+    path.join(fixtureDir, 'src', 'App.tsx'),
+    [
+      'export function App(props: any): JSX.Element {',
+      '  return <div id="first" id="second">{props.label}</div>;',
+      '}',
+      '',
+    ].join('\n'),
+  );
+  writeFile(
+    path.join(fixtureDir, 'eslint.config.mjs'),
+    "import strictReactConfig from '@ytdev/linter/configs/strict-react';\n\nexport default strictReactConfig;\n",
+  );
+  installPackedPackage(fixtureDir, tarballPath);
+
+  const result = run(npxBin, ['--no-install', 'eslint', 'src/App.tsx'], {
+    capture: true,
+    cwd: fixtureDir,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+
+  assertFailure(result, 'Strict React fixture lint');
+  assert(output.includes('@typescript-eslint/no-explicit-any'), 'Strict React fixture did not report no-explicit-any.');
+  assert(output.includes('react/jsx-no-duplicate-props'), 'Strict React fixture did not report a React rule.');
+}
+
 function verifyExports(tarballPath) {
   const fixtureDir = createFixture('exports');
 
@@ -373,6 +405,7 @@ function verifyExports(tarballPath) {
     "await import('@ytdev/linter');",
     "await import('@ytdev/linter/configs/react');",
     "await import('@ytdev/linter/configs/strict');",
+    "await import('@ytdev/linter/configs/strict-react');",
     "await import('@ytdev/linter/configs/sonar');",
     "await import('@ytdev/linter/configs/react-sonar');",
     "await import('@ytdev/linter/prettier');",
@@ -486,6 +519,28 @@ function verifyYarnHuskyExistingHook(tarballPath) {
   assertManagedHookState(hookPath, { hasManagedBlock: false, markerCount: 0, userHookContent });
 }
 
+function verifyYarnBerryHuskyWithoutPackageManager(tarballPath) {
+  const fixtureDir = createFixture('yarn-berry-husky-without-package-manager');
+  const hookPath = path.join(fixtureDir, '.husky', 'pre-commit');
+  const userHookContent = '#!/usr/bin/env sh\necho user-hook\n';
+
+  installPackedPackageWithYarn(fixtureDir, tarballPath);
+  assertSuccess(run('git', ['init'], { cwd: fixtureDir }), 'git init in Yarn Berry Husky fixture');
+  writeFile(hookPath, userHookContent);
+
+  assertSuccess(
+    runYarn(['exec', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }),
+    'Yarn Berry Husky enable without packageManager',
+  );
+  assertManagedHookState(hookPath, {
+    expectedCommand: 'yarn exec ytdev-linter lint',
+    hasManagedBlock: true,
+    markerCount: 1,
+    userHookContent,
+  });
+  assertGitHooksPath(fixtureDir);
+}
+
 function assertGitHooksPath(fixtureDir) {
   const result = run('git', ['config', '--get', 'core.hooksPath'], { capture: true, cwd: fixtureDir });
 
@@ -531,10 +586,12 @@ verifyYarnJsOnly(tarballPath);
 verifyReactTypeScript(tarballPath);
 verifySonar(tarballPath);
 verifyReactSonar(tarballPath);
+verifyStrictReact(tarballPath);
 verifyExports(tarballPath);
 verifyMissingTsconfig(tarballPath);
 verifyHuskyExistingHook(tarballPath);
 verifyYarnHuskyExistingHook(tarballPath);
+verifyYarnBerryHuskyWithoutPackageManager(tarballPath);
 
 fs.rmSync(WORK_DIR, { force: true, recursive: true });
 

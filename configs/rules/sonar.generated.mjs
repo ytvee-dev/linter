@@ -1,7 +1,5 @@
 import sonarjs from 'eslint-plugin-sonarjs';
 
-const sonarPlugin = sonarjs.default ?? sonarjs;
-
 export const sonarCommonRules = {
   'sonarjs/arguments-usage': 'error',
   'sonarjs/array-constructor': 'warn',
@@ -262,7 +260,7 @@ export const sonarRules = [
     name: '@ytdev/linter/sonarjs/common',
     files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
     plugins: {
-      sonarjs: sonarPlugin,
+      sonarjs,
     },
     rules: sonarCommonRules,
   },

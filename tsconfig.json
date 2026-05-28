@@ -9,5 +9,5 @@
     "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["configs/**/*", "eslint.config.mjs", "prettier.js"]
+  "include": ["bin/**/*", "configs/**/*", "eslint.config.mjs", "prettier.js", "scripts/**/*"]
 }

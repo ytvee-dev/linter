@@ -1,4 +1,4 @@
-const PUBLIC_PROFILES = ['base', 'react', 'strict', 'sonar', 'react-sonar'];
+const PUBLIC_PROFILES = ['base', 'react', 'strict', 'sonar', 'react-sonar', 'strict-react'];
 
 function normalizeRuleValue(value) {
   return JSON.stringify(value);
@@ -94,7 +94,7 @@ function getDuplicateRationale(profileName, ruleId, entries) {
   }
 
   if (
-    profileName === 'strict' &&
+    ['strict', 'strict-react'].includes(profileName) &&
     ruleId === '@typescript-eslint/no-explicit-any' &&
     hasSource(entries, '@ytdev/linter/strict')
   ) {
@@ -102,7 +102,7 @@ function getDuplicateRationale(profileName, ruleId, entries) {
   }
 
   if (
-    profileName === 'strict' &&
+    ['strict', 'strict-react'].includes(profileName) &&
     ruleId === 'no-restricted-syntax' &&
     hasSource(entries, '@ytdev/linter/javascript') &&
     hasSource(entries, '@ytdev/linter/one-module')

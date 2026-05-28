@@ -114,6 +114,10 @@ function detectPackageManager(cwd) {
     return 'npm';
   }
 
+  if (fs.existsSync(path.join(cwd, '.yarnrc.yml'))) {
+    return 'yarn-berry';
+  }
+
   if (fs.existsSync(path.join(cwd, 'yarn.lock'))) {
     return 'yarn-classic';
   }
