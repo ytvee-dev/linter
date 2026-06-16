@@ -45,7 +45,7 @@ export const oneModuleRestrictedSyntaxRule = {
 };
 
 export const oneModuleRule = {
-  name: '@ytdev/linter/one-module',
+  name: '@ytvee/linter/one-module',
   files: ['**/*.{ts,tsx}'],
   rules: {
     'max-classes-per-file': ['error', 1],

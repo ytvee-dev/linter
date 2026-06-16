@@ -1,5 +1,5 @@
 export const typescriptRule = {
-  name: '@ytdev/linter/typescript',
+  name: '@ytvee/linter/typescript',
   files: ['**/*.{ts,tsx}'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',

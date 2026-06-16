@@ -6,12 +6,12 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const WORK_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ytdev-linter-consumer-fixtures-'));
+const WORK_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ytvee-linter-consumer-fixtures-'));
 const PACK_DIR = path.join(WORK_DIR, 'pack');
 const NPM_CACHE_DIR = path.join(WORK_DIR, 'npm-cache');
 const YARN_VERSION = '4.9.1';
-const MANAGED_BEGIN_MARKER = '# @ytdev/linter begin';
-const MANAGED_END_MARKER = '# @ytdev/linter end';
+const MANAGED_BEGIN_MARKER = '# @ytvee/linter begin';
+const MANAGED_END_MARKER = '# @ytvee/linter end';
 const nodeBinDir = path.dirname(process.execPath);
 const corepackBin = process.platform === 'win32' ? path.join(nodeBinDir, 'corepack.cmd') : 'corepack';
 const npmBin = process.platform === 'win32' ? path.join(nodeBinDir, 'npm.cmd') : 'npm';
@@ -113,7 +113,7 @@ function installPackedPackageWithYarn(fixtureDir, tarballPath) {
     'cacheFolder: .yarn/cache\nenableGlobalCache: false\nglobalFolder: .yarn/global\nnodeLinker: node-modules\n',
   );
   const tarballRelativePath = path.relative(fixtureDir, tarballPath).replaceAll('\\', '/');
-  const tarballSpec = `@ytdev/linter@file:${tarballRelativePath}`;
+  const tarballSpec = `@ytvee/linter@file:${tarballRelativePath}`;
   assertSuccess(
     runYarn(['add', '--dev', tarballSpec], { cwd: fixtureDir }),
     `yarn add in ${path.basename(fixtureDir)}`,
@@ -158,7 +158,7 @@ function assertExpectedTarballSurface(files) {
   const requiredFiles = [
     'LICENSE',
     'README.md',
-    'bin/ytdev-linter.mjs',
+    'bin/ytvee-linter.mjs',
     'configs/base.mjs',
     'configs/default.mjs',
     'configs/fix.mjs',
@@ -229,17 +229,17 @@ function verifyJsOnly(tarballPath) {
 
   writeFile(indexPath, 'export function greet(name) {return `Hello ${name}`;}\n');
   installPackedPackage(fixtureDir, tarballPath);
-  assertSuccess(run(npxBin, ['--no-install', 'ytdev-linter', '--help'], { cwd: fixtureDir }), 'CLI help');
+  assertSuccess(run(npxBin, ['--no-install', 'ytvee-linter', '--help'], { cwd: fixtureDir }), 'CLI help');
   assertSuccess(
-    run(npxBin, ['--no-install', 'ytdev-linter', 'lint', 'src/index.js'], { cwd: fixtureDir }),
+    run(npxBin, ['--no-install', 'ytvee-linter', 'lint', 'src/index.js'], { cwd: fixtureDir }),
     'JS-only fixture lint',
   );
   assertSuccess(
-    run(npxBin, ['--no-install', 'ytdev-linter', 'format', '--check', 'package.json'], { cwd: fixtureDir }),
+    run(npxBin, ['--no-install', 'ytvee-linter', 'format', '--check', 'package.json'], { cwd: fixtureDir }),
     'JS-only fixture format check',
   );
   assertSuccess(
-    run(npxBin, ['--no-install', 'ytdev-linter', 'fix', 'src/index.js'], { cwd: fixtureDir }),
+    run(npxBin, ['--no-install', 'ytvee-linter', 'fix', 'src/index.js'], { cwd: fixtureDir }),
     'JS-only fixture fix',
   );
 
@@ -250,7 +250,7 @@ function verifyJsOnly(tarballPath) {
     'JS-only fixture fix did not run Prettier as expected.',
   );
   assertSuccess(
-    run(npxBin, ['--no-install', 'ytdev-linter', 'lint', 'src/index.js'], { cwd: fixtureDir }),
+    run(npxBin, ['--no-install', 'ytvee-linter', 'lint', 'src/index.js'], { cwd: fixtureDir }),
     'JS-only fixture lint after fix',
   );
 }
@@ -265,13 +265,13 @@ function verifyTypeScript(tarballPath) {
   );
   installPackedPackage(fixtureDir, tarballPath);
   assertSuccess(
-    run(npxBin, ['--no-install', 'ytdev-linter', 'lint', 'src/index.ts'], { cwd: fixtureDir }),
+    run(npxBin, ['--no-install', 'ytvee-linter', 'lint', 'src/index.ts'], { cwd: fixtureDir }),
     'TypeScript fixture lint',
   );
 
   writeFile(
     path.join(fixtureDir, 'eslint.config.mjs'),
-    "import config from '@ytdev/linter';\n\nexport default config;\n",
+    "import config from '@ytvee/linter';\n\nexport default config;\n",
   );
   assertSuccess(
     run(npxBin, ['--no-install', 'eslint', 'src/index.ts'], { cwd: fixtureDir }),
@@ -294,7 +294,7 @@ function verifyDefaultSonarFailure(tarballPath) {
   );
   installPackedPackage(fixtureDir, tarballPath);
 
-  const result = run(npxBin, ['--no-install', 'ytdev-linter', 'lint', 'src/index.js'], {
+  const result = run(npxBin, ['--no-install', 'ytvee-linter', 'lint', 'src/index.js'], {
     capture: true,
     cwd: fixtureDir,
   });
@@ -313,17 +313,17 @@ function verifyYarnJsOnly(tarballPath) {
 
   writeFile(indexPath, 'export function greet(name) {return `Hello ${name}`;}\n');
   installPackedPackageWithYarn(fixtureDir, tarballPath);
-  assertSuccess(runYarn(['exec', 'ytdev-linter', '--help'], { cwd: fixtureDir }), 'Yarn CLI help');
+  assertSuccess(runYarn(['exec', 'ytvee-linter', '--help'], { cwd: fixtureDir }), 'Yarn CLI help');
   assertSuccess(
-    runYarn(['exec', 'ytdev-linter', 'lint', 'src/index.js'], { cwd: fixtureDir }),
+    runYarn(['exec', 'ytvee-linter', 'lint', 'src/index.js'], { cwd: fixtureDir }),
     'Yarn JS-only fixture lint',
   );
   assertSuccess(
-    runYarn(['exec', 'ytdev-linter', 'format', '--check', 'package.json'], { cwd: fixtureDir }),
+    runYarn(['exec', 'ytvee-linter', 'format', '--check', 'package.json'], { cwd: fixtureDir }),
     'Yarn JS-only fixture format check',
   );
   assertSuccess(
-    runYarn(['exec', 'ytdev-linter', 'fix', 'src/index.js'], { cwd: fixtureDir }),
+    runYarn(['exec', 'ytvee-linter', 'fix', 'src/index.js'], { cwd: fixtureDir }),
     'Yarn JS-only fixture fix',
   );
 
@@ -341,7 +341,7 @@ function verifyPackagePrettierConfig(tarballPath) {
   writeFile(path.join(fixtureDir, 'src', 'index.js'), 'export const value = "double-quoted";\n');
   installPackedPackage(fixtureDir, tarballPath);
 
-  const result = run(npxBin, ['--no-install', 'ytdev-linter', 'format', '--check', 'src/index.js'], {
+  const result = run(npxBin, ['--no-install', 'ytvee-linter', 'format', '--check', 'src/index.js'], {
     capture: true,
     cwd: fixtureDir,
   });
@@ -361,7 +361,7 @@ function verifyReactTypeScript(tarballPath) {
   writeReactApp(fixtureDir);
   writeFile(
     path.join(fixtureDir, 'eslint.config.mjs'),
-    "import reactConfig from '@ytdev/linter/configs/react';\n\nexport default reactConfig;\n",
+    "import reactConfig from '@ytvee/linter/configs/react';\n\nexport default reactConfig;\n",
   );
   installPackedPackage(fixtureDir, tarballPath);
   assertSuccess(
@@ -377,7 +377,7 @@ function verifySonar(tarballPath) {
   writeFile(path.join(fixtureDir, 'src', 'index.ts'), '\nexport const answer: number = 42;\n');
   writeFile(
     path.join(fixtureDir, 'eslint.config.mjs'),
-    "import sonarConfig from '@ytdev/linter/configs/sonar';\n\nexport default sonarConfig;\n",
+    "import sonarConfig from '@ytvee/linter/configs/sonar';\n\nexport default sonarConfig;\n",
   );
   installPackedPackage(fixtureDir, tarballPath);
   assertSuccess(run(npxBin, ['--no-install', 'eslint', 'src/index.ts'], { cwd: fixtureDir }), 'Sonar fixture lint');
@@ -390,7 +390,7 @@ function verifyReactSonar(tarballPath) {
   writeFile(path.join(fixtureDir, 'src', 'App.tsx'), '\nexport const answer: number = 42;\n');
   writeFile(
     path.join(fixtureDir, 'eslint.config.mjs'),
-    "import reactSonarConfig from '@ytdev/linter/configs/react-sonar';\n\nexport default reactSonarConfig;\n",
+    "import reactSonarConfig from '@ytvee/linter/configs/react-sonar';\n\nexport default reactSonarConfig;\n",
   );
   installPackedPackage(fixtureDir, tarballPath);
   assertSuccess(
@@ -415,7 +415,7 @@ function verifyStrictReact(tarballPath) {
   );
   writeFile(
     path.join(fixtureDir, 'eslint.config.mjs'),
-    "import strictReactConfig from '@ytdev/linter/configs/strict-react';\n\nexport default strictReactConfig;\n",
+    "import strictReactConfig from '@ytvee/linter/configs/strict-react';\n\nexport default strictReactConfig;\n",
   );
   installPackedPackage(fixtureDir, tarballPath);
 
@@ -436,14 +436,14 @@ function verifyExports(tarballPath) {
   installPackedPackage(fixtureDir, tarballPath);
 
   const importScript = [
-    "await import('@ytdev/linter');",
-    "await import('@ytdev/linter/eslint.config');",
-    "await import('@ytdev/linter/configs/react');",
-    "await import('@ytdev/linter/configs/strict');",
-    "await import('@ytdev/linter/configs/strict-react');",
-    "await import('@ytdev/linter/configs/sonar');",
-    "await import('@ytdev/linter/configs/react-sonar');",
-    "await import('@ytdev/linter/prettier');",
+    "await import('@ytvee/linter');",
+    "await import('@ytvee/linter/eslint.config');",
+    "await import('@ytvee/linter/configs/react');",
+    "await import('@ytvee/linter/configs/strict');",
+    "await import('@ytvee/linter/configs/strict-react');",
+    "await import('@ytvee/linter/configs/sonar');",
+    "await import('@ytvee/linter/configs/react-sonar');",
+    "await import('@ytvee/linter/prettier');",
     "console.log('exports ok');",
   ].join('\n');
 
@@ -462,7 +462,7 @@ function verifyMissingTsconfig(tarballPath) {
   );
   installPackedPackage(fixtureDir, tarballPath);
 
-  const result = run(npxBin, ['--no-install', 'ytdev-linter', 'lint', 'src/index.ts'], {
+  const result = run(npxBin, ['--no-install', 'ytvee-linter', 'lint', 'src/index.ts'], {
     capture: true,
     cwd: fixtureDir,
   });
@@ -474,7 +474,7 @@ function verifyMissingTsconfig(tarballPath) {
     'Missing tsconfig fixture did not print the expected actionable message.',
   );
   assert(
-    !(output.includes('node_modules') && output.includes('@ytdev/linter') && output.includes('tsconfig.json')),
+    !(output.includes('node_modules') && output.includes('@ytvee/linter') && output.includes('tsconfig.json')),
     'Missing tsconfig fixture referenced a package-local tsconfig path.',
   );
 }
@@ -488,9 +488,9 @@ function verifyHuskyExistingHook(tarballPath) {
   assertSuccess(run('git', ['init'], { cwd: fixtureDir }), 'git init in Husky fixture');
   writeFile(hookPath, userHookContent);
 
-  assertSuccess(run(npxBin, ['--no-install', 'ytdev-linter', 'init'], { cwd: fixtureDir }), 'Husky init');
+  assertSuccess(run(npxBin, ['--no-install', 'ytvee-linter', 'init'], { cwd: fixtureDir }), 'Husky init');
   assertManagedHookState(hookPath, {
-    expectedCommand: 'npx --no-install ytdev-linter lint',
+    expectedCommand: 'npx --no-install ytvee-linter lint',
     hasManagedBlock: true,
     markerCount: 1,
     userHookContent,
@@ -498,18 +498,18 @@ function verifyHuskyExistingHook(tarballPath) {
   assertGitHooksPath(fixtureDir);
 
   assertSuccess(
-    run(npxBin, ['--no-install', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }),
+    run(npxBin, ['--no-install', 'ytvee-linter', 'husky', 'enable'], { cwd: fixtureDir }),
     'Husky enable idempotency',
   );
   assertManagedHookState(hookPath, {
-    expectedCommand: 'npx --no-install ytdev-linter lint',
+    expectedCommand: 'npx --no-install ytvee-linter lint',
     hasManagedBlock: true,
     markerCount: 1,
     userHookContent,
   });
 
   assertSuccess(
-    run(npxBin, ['--no-install', 'ytdev-linter', 'husky', 'disable'], { cwd: fixtureDir }),
+    run(npxBin, ['--no-install', 'ytvee-linter', 'husky', 'disable'], { cwd: fixtureDir }),
     'Husky disable',
   );
   assertManagedHookState(hookPath, { hasManagedBlock: false, markerCount: 0, userHookContent });
@@ -526,9 +526,9 @@ function verifyYarnHuskyExistingHook(tarballPath) {
   assertSuccess(run('git', ['init'], { cwd: fixtureDir }), 'git init in Yarn Husky fixture');
   writeFile(hookPath, userHookContent);
 
-  assertSuccess(runYarn(['exec', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }), 'Yarn Husky enable');
+  assertSuccess(runYarn(['exec', 'ytvee-linter', 'husky', 'enable'], { cwd: fixtureDir }), 'Yarn Husky enable');
   assertManagedHookState(hookPath, {
-    expectedCommand: 'yarn exec ytdev-linter lint',
+    expectedCommand: 'yarn exec ytvee-linter lint',
     hasManagedBlock: true,
     markerCount: 1,
     userHookContent,
@@ -536,17 +536,17 @@ function verifyYarnHuskyExistingHook(tarballPath) {
   assertGitHooksPath(fixtureDir);
 
   assertSuccess(
-    runYarn(['exec', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }),
+    runYarn(['exec', 'ytvee-linter', 'husky', 'enable'], { cwd: fixtureDir }),
     'Yarn Husky enable idempotency',
   );
   assertManagedHookState(hookPath, {
-    expectedCommand: 'yarn exec ytdev-linter lint',
+    expectedCommand: 'yarn exec ytvee-linter lint',
     hasManagedBlock: true,
     markerCount: 1,
     userHookContent,
   });
 
-  assertSuccess(runYarn(['exec', 'ytdev-linter', 'husky', 'disable'], { cwd: fixtureDir }), 'Yarn Husky disable');
+  assertSuccess(runYarn(['exec', 'ytvee-linter', 'husky', 'disable'], { cwd: fixtureDir }), 'Yarn Husky disable');
   assertManagedHookState(hookPath, { hasManagedBlock: false, markerCount: 0, userHookContent });
 }
 
@@ -567,13 +567,13 @@ function verifyYarnBerryHuskyWithoutPackageManager(tarballPath) {
   assertSuccess(
     run(
       process.execPath,
-      [path.join(fixtureDir, 'node_modules', '@ytdev', 'linter', 'bin', 'ytdev-linter.mjs'), 'husky', 'enable'],
+      [path.join(fixtureDir, 'node_modules', '@ytvee', 'linter', 'bin', 'ytvee-linter.mjs'), 'husky', 'enable'],
       { cwd: fixtureDir },
     ),
     'Yarn Berry Husky enable without packageManager',
   );
   assertManagedHookState(hookPath, {
-    expectedCommand: 'yarn exec ytdev-linter lint',
+    expectedCommand: 'yarn exec ytvee-linter lint',
     hasManagedBlock: true,
     markerCount: 1,
     userHookContent,

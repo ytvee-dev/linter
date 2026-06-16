@@ -14,11 +14,11 @@ import { typescriptRule } from './rules/typescript.rule.mjs';
 const tsconfigRootDir = process.cwd();
 const eslintRecommended = { ...pluginJs.configs.recommended, name: '@eslint/js/recommended' };
 const globalsRule = {
-  name: '@ytdev/linter/globals',
+  name: '@ytvee/linter/globals',
   languageOptions: { globals: { ...globals.browser, ...globals.node } },
 };
 const typescriptParserOptionsRule = {
-  name: '@ytdev/linter/typescript-parser-options',
+  name: '@ytvee/linter/typescript-parser-options',
   files: ['**/*.{ts,tsx}'],
   languageOptions: {
     parserOptions: {

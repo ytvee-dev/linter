@@ -69,7 +69,7 @@ function getDuplicateRationale(profileName, ruleId, entries) {
   if (
     ruleId === 'no-dupe-class-members' &&
     hasSource(entries, '@eslint/js/recommended') &&
-    hasSource(entries, '@ytdev/linter/best-practices')
+    hasSource(entries, '@ytvee/linter/best-practices')
   ) {
     return 'The local profile intentionally disables the core duplicate class member rule.';
   }
@@ -88,7 +88,7 @@ function getDuplicateRationale(profileName, ruleId, entries) {
   if (
     ['@typescript-eslint/no-explicit-any', '@typescript-eslint/no-unused-vars'].includes(ruleId) &&
     hasSource(entries, 'typescript-eslint/recommended-type-checked') &&
-    hasSource(entries, '@ytdev/linter/typescript')
+    hasSource(entries, '@ytvee/linter/typescript')
   ) {
     return 'The local TypeScript profile intentionally overrides recommendedTypeChecked semantics.';
   }
@@ -96,7 +96,7 @@ function getDuplicateRationale(profileName, ruleId, entries) {
   if (
     ['strict', 'strict-react'].includes(profileName) &&
     ruleId === '@typescript-eslint/no-explicit-any' &&
-    hasSource(entries, '@ytdev/linter/strict')
+    hasSource(entries, '@ytvee/linter/strict')
   ) {
     return 'The strict profile intentionally re-enables no-explicit-any after base disables it.';
   }
@@ -104,8 +104,8 @@ function getDuplicateRationale(profileName, ruleId, entries) {
   if (
     ['strict', 'strict-react'].includes(profileName) &&
     ruleId === 'no-restricted-syntax' &&
-    hasSource(entries, '@ytdev/linter/javascript') &&
-    hasSource(entries, '@ytdev/linter/one-module')
+    hasSource(entries, '@ytvee/linter/javascript') &&
+    hasSource(entries, '@ytvee/linter/one-module')
   ) {
     return 'The strict profile extends base Symbol/BigInt restrictions with the one-module TypeScript selector.';
   }

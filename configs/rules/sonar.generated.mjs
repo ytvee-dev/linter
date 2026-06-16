@@ -257,7 +257,7 @@ export const sonarTypeCheckedRules = {
 
 export const sonarRules = [
   {
-    name: '@ytdev/linter/sonarjs/common',
+    name: '@ytvee/linter/sonarjs/common',
     files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
     plugins: {
       sonarjs,
@@ -265,7 +265,7 @@ export const sonarRules = [
     rules: sonarCommonRules,
   },
   {
-    name: '@ytdev/linter/sonarjs/type-checked',
+    name: '@ytvee/linter/sonarjs/type-checked',
     files: ['**/*.{ts,tsx}'],
     rules: sonarTypeCheckedRules,
   },

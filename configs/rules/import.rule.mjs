@@ -1,7 +1,7 @@
 import importPlugin from 'eslint-plugin-import';
 
 export const importRule = {
-  name: '@ytdev/linter/import',
+  name: '@ytvee/linter/import',
   plugins: {
     import: importPlugin,
   },

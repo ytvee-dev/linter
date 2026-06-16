@@ -1,5 +1,5 @@
 export const ignoreRule = {
-  name: '@ytdev/linter/ignore',
+  name: '@ytvee/linter/ignore',
   ignores: [
     '**/node_modules',
     '**/dist',

@@ -1,5 +1,5 @@
 export const bestPracticesRule = {
-  name: '@ytdev/linter/best-practices',
+  name: '@ytvee/linter/best-practices',
   rules: {
     'no-shadow': 'off',
     'no-eval': 'error',

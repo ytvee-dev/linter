@@ -1,10 +1,10 @@
 {
-  "name": "@ytdev/linter",
+  "name": "@ytvee/linter",
   "version": "1.0.4",
   "description": "The general ESLint config for projects.",
   "main": "eslint.config.mjs",
   "bin": {
-    "ytdev-linter": "bin/ytdev-linter.mjs"
+    "ytvee-linter": "bin/ytvee-linter.mjs"
   },
   "exports": {
     ".": "./eslint.config.mjs",

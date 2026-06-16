@@ -7,13 +7,13 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-const PACKAGE_NAME = '@ytdev/linter';
+const PACKAGE_NAME = '@ytvee/linter';
 const PACKAGE_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PACKAGE_DEFAULT_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'eslint.config.mjs');
 const PACKAGE_FIX_ESLINT_CONFIG = path.join(PACKAGE_ROOT, 'configs', 'fix.mjs');
 const PACKAGE_PRETTIER_CONFIG = path.join(PACKAGE_ROOT, 'prettier.js');
-const BEGIN_MARKER = '# @ytdev/linter begin';
-const END_MARKER = '# @ytdev/linter end';
+const BEGIN_MARKER = '# @ytvee/linter begin';
+const END_MARKER = '# @ytvee/linter end';
 const require = createRequire(import.meta.url);
 const DEFAULT_LINT_TARGETS = ['.'];
 const DEFAULT_FORMAT_TARGETS = ['**/*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css,scss,html,yml,yaml}'];
@@ -31,17 +31,17 @@ const ESLINT_CONFIG_FILES = [
 ];
 
 const helpText = `
-ytdev-linter
+ytvee-linter
 
 Usage:
-  ytdev-linter --help
-  ytdev-linter lint [paths...]
-  ytdev-linter format [--check] [paths...]
-  ytdev-linter fix [paths...]
-  ytdev-linter init
-  ytdev-linter init --husky
-  ytdev-linter husky enable
-  ytdev-linter husky disable
+  ytvee-linter --help
+  ytvee-linter lint [paths...]
+  ytvee-linter format [--check] [paths...]
+  ytvee-linter fix [paths...]
+  ytvee-linter init
+  ytvee-linter init --husky
+  ytvee-linter husky enable
+  ytvee-linter husky disable
 
 Commands:
   lint             Run ESLint with the default React + SonarJS profile when no local ESLint config exists.
@@ -142,18 +142,18 @@ function createHookCommand(cwd) {
   const packageManager = detectPackageManager(cwd);
 
   if (packageManager === 'yarn-berry') {
-    return 'yarn exec ytdev-linter lint';
+    return 'yarn exec ytvee-linter lint';
   }
 
   if (packageManager === 'yarn-classic') {
-    return 'yarn run -s ytdev-linter lint';
+    return 'yarn run -s ytvee-linter lint';
   }
 
   if (packageManager === 'pnpm') {
-    return 'pnpm exec ytdev-linter lint';
+    return 'pnpm exec ytvee-linter lint';
   }
 
-  return 'npx --no-install ytdev-linter lint';
+  return 'npx --no-install ytvee-linter lint';
 }
 
 function hasConsumerTsconfig(cwd) {

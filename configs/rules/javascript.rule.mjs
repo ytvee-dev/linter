@@ -32,7 +32,7 @@ export const restrictedSyntaxRules = [
 ];
 
 export const modernJavaScriptRule = {
-  name: '@ytdev/linter/modern-javascript',
+  name: '@ytvee/linter/modern-javascript',
   files: ['**/*.{js,jsx,mjs,cjs}'],
   rules: {
     'no-var': 'error',
@@ -41,7 +41,7 @@ export const modernJavaScriptRule = {
 };
 
 export const javascriptRule = {
-  name: '@ytdev/linter/javascript',
+  name: '@ytvee/linter/javascript',
   rules: {
     'no-restricted-syntax': ['error', ...restrictedSyntaxRules],
   },
