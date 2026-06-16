@@ -138,33 +138,33 @@ npx --no-install ytvee-linter husky disable
 Пример локальной конфигурации ESLint:
 
 ```js
-import конфигурация from '@ytvee/linter';
+import config from '@ytvee/linter';
 
-export default конфигурация;
+export default config;
 ```
 
 React-профиль без Sonar:
 
 ```js
-import конфигурация from '@ytvee/linter/configs/react';
+import config from '@ytvee/linter/configs/react';
 
-export default конфигурация;
+export default config;
 ```
 
 React-профиль с Sonar:
 
 ```js
-import конфигурация from '@ytvee/linter/configs/react-sonar';
+import config from '@ytvee/linter/configs/react-sonar';
 
-export default конфигурация;
+export default config;
 ```
 
 Строгий React-профиль:
 
 ```js
-import конфигурация from '@ytvee/linter/configs/strict-react';
+import config from '@ytvee/linter/configs/strict-react';
 
-export default конфигурация;
+export default config;
 ```
 
 ## Конфигурация Prettier
@@ -279,9 +279,8 @@ npm pack --dry-run --json --cache tmp/npm-cache-audit
 
 ## Лицензия
 
-MIT. Профиль автора и лицензии: [https://github.com/ytvee](https://github.com/ytvee).
+MIT.
 
 ## Ссылки
 
 - [Пакет в npm](https://www.npmjs.com/package/@ytvee/linter)
-- [Профиль автора](https://github.com/ytvee)
