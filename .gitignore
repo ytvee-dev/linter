@@ -56,11 +56,6 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
-# yarn
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.yarn/versions
-.pnp.js
-!/.yarnrc.yml
+# Package manager artifacts
+.yarn/
+.pnp.*

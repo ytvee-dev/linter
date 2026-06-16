@@ -15,8 +15,10 @@ const PACKAGE_PRETTIER_CONFIG = path.join(PACKAGE_ROOT, 'prettier.js');
 const BEGIN_MARKER = '# @ytdev/linter begin';
 const END_MARKER = '# @ytdev/linter end';
 const require = createRequire(import.meta.url);
-const DEFAULT_TARGETS = ['.'];
+const DEFAULT_LINT_TARGETS = ['.'];
+const DEFAULT_FORMAT_TARGETS = ['**/*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css,scss,html,yml,yaml}'];
 const ESLINT_ARGS = ['--ext', '.js,.mjs,.ts,.tsx', '--report-unused-disable-directives'];
+const PRETTIER_ARGS = ['--config', PACKAGE_PRETTIER_CONFIG, '--ignore-unknown'];
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.tsx']);
 const SKIPPED_SCAN_DIRECTORIES = new Set(['.git', '.next', 'build', 'coverage', 'dist', 'node_modules', 'out']);
 const ESLINT_CONFIG_FILES = [
@@ -36,15 +38,17 @@ Usage:
   ytdev-linter lint [paths...]
   ytdev-linter format [--check] [paths...]
   ytdev-linter fix [paths...]
+  ytdev-linter init
   ytdev-linter init --husky
   ytdev-linter husky enable
   ytdev-linter husky disable
 
 Commands:
   lint             Run ESLint with the default React + SonarJS profile when no local ESLint config exists.
-  format           Run Prettier write for the provided paths, or "." by default.
-  format --check   Run Prettier check for the provided paths, or "." by default.
+  format           Run Prettier write for the provided paths, or safe source/config globs by default.
+  format --check   Run Prettier check for the provided paths, or safe source/config globs by default.
   fix              Run non-Sonar ESLint autofix, then Prettier write.
+  init             Enable the managed pre-commit hook in the current project.
   init --husky      Enable the managed pre-commit hook in the current project.
   husky enable     Add or update the managed pre-commit hook block.
   husky disable    Remove only the managed pre-commit hook block.
@@ -69,8 +73,8 @@ function runNodeBin(binPath, args) {
   return result.status ?? 1;
 }
 
-function getTargets(args) {
-  return args.length > 0 ? args : DEFAULT_TARGETS;
+function getTargets(args, defaultTargets) {
+  return args.length > 0 ? args : defaultTargets;
 }
 
 function runPrettier(args) {
@@ -232,7 +236,7 @@ function getEslintConfigArgs(cwd, fallbackConfigPath) {
 }
 
 function lint(args) {
-  const targets = getTargets(args);
+  const targets = getTargets(args, DEFAULT_LINT_TARGETS);
 
   assertFallbackTypeScriptReady(targets);
   process.exitCode = runEslint([
@@ -245,14 +249,15 @@ function lint(args) {
 function format(args) {
   const [maybeCheck, ...rest] = args;
   const isCheck = maybeCheck === '--check';
-  const targets = isCheck ? getTargets(rest) : getTargets(args);
+  const targets = isCheck ? getTargets(rest, DEFAULT_FORMAT_TARGETS) : getTargets(args, DEFAULT_FORMAT_TARGETS);
   const prettierMode = isCheck ? '--check' : '--write';
 
-  process.exitCode = runPrettier(['--config', PACKAGE_PRETTIER_CONFIG, prettierMode, ...targets]);
+  process.exitCode = runPrettier([...PRETTIER_ARGS, prettierMode, ...targets]);
 }
 
 function fix(args) {
-  const targets = getTargets(args);
+  const targets = getTargets(args, DEFAULT_LINT_TARGETS);
+  const prettierTargets = args.length > 0 ? targets : DEFAULT_FORMAT_TARGETS;
 
   assertFallbackTypeScriptReady(targets);
 
@@ -268,7 +273,7 @@ function fix(args) {
     return;
   }
 
-  process.exitCode = runPrettier(['--config', PACKAGE_PRETTIER_CONFIG, '--write', ...targets]);
+  process.exitCode = runPrettier([...PRETTIER_ARGS, '--write', ...prettierTargets]);
 }
 
 function escapeRegExp(value) {
@@ -388,7 +393,7 @@ function run(argv) {
     return;
   }
 
-  if (command === 'init' && subcommand === '--husky' && rest.length === 0) {
+  if (command === 'init' && ((!subcommand && rest.length === 0) || (subcommand === '--husky' && rest.length === 0))) {
     enableHusky(process.cwd());
     return;
   }

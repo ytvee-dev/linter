@@ -1,7 +1,5 @@
-.yarn/
 node_modules/
 .npm-cache/
 package-lock.json
-yarn.lock
 configs/rules/sonar.generated.mjs
 sonarqube-frontend-rules.json

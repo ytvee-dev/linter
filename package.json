@@ -24,13 +24,13 @@
   ],
   "author": "Yevgeniy Tyan",
   "license": "MIT",
-  "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538",
+  "packageManager": "npm@10.9.8",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ytdev/linter.git"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.17.0"
   },
   "publishConfig": {
     "access": "public",
@@ -48,11 +48,15 @@
     "build": "echo \"Info: Build is unnecessary\"",
     "audit:rules": "node scripts/audit-rule-duplicates.mjs",
     "lint": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives",
-    "fix": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --write .",
-    "format": "node ./node_modules/prettier/bin/prettier.cjs --write .",
-    "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check .",
-    "lint:fix": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --write .",
-    "verify:consumer": "node scripts/verify-consumer-package.mjs"
+    "fix": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --ignore-unknown --write \"**/*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css,scss,html,yml,yaml}\"",
+    "format": "node ./node_modules/prettier/bin/prettier.cjs --ignore-unknown --write \"**/*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css,scss,html,yml,yaml}\"",
+    "format:check": "node ./node_modules/prettier/bin/prettier.cjs --ignore-unknown --check \"**/*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css,scss,html,yml,yaml}\"",
+    "lint:fix": "eslint . --config ./configs/fix.mjs --ext .js,.mjs,.ts,.tsx --report-unused-disable-directives --fix && node ./node_modules/prettier/bin/prettier.cjs --ignore-unknown --write \"**/*.{js,cjs,mjs,jsx,ts,tsx,json,jsonc,css,scss,html,yml,yaml}\"",
+    "verify:consumer": "node scripts/verify-consumer-package.mjs",
+    "verify:consumer:npm": "node scripts/verify-consumer-package.mjs npm",
+    "verify:consumer:yarn": "node scripts/verify-consumer-package.mjs yarn",
+    "verify:consumer:husky": "node scripts/verify-consumer-package.mjs husky",
+    "verify:consumer:exports": "node scripts/verify-consumer-package.mjs exports"
   },
   "devDependencies": {
     "@types/node": "^22.19.19"

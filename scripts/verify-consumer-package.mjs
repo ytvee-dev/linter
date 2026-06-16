@@ -8,10 +8,12 @@ import { fileURLToPath } from 'node:url';
 const ROOT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const WORK_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ytdev-linter-consumer-fixtures-'));
 const PACK_DIR = path.join(WORK_DIR, 'pack');
-const YARN_CLI_PATH = path.join(ROOT_DIR, '.yarn', 'releases', 'yarn-4.9.1.cjs');
+const NPM_CACHE_DIR = path.join(WORK_DIR, 'npm-cache');
+const YARN_VERSION = '4.9.1';
 const MANAGED_BEGIN_MARKER = '# @ytdev/linter begin';
 const MANAGED_END_MARKER = '# @ytdev/linter end';
 const nodeBinDir = path.dirname(process.execPath);
+const corepackBin = process.platform === 'win32' ? path.join(nodeBinDir, 'corepack.cmd') : 'corepack';
 const npmBin = process.platform === 'win32' ? path.join(nodeBinDir, 'npm.cmd') : 'npm';
 const npxBin = process.platform === 'win32' ? path.join(nodeBinDir, 'npx.cmd') : 'npx';
 
@@ -27,7 +29,7 @@ function run(command, args, options = {}) {
   const result = spawnSync(commandFile, commandArgs, {
     cwd: options.cwd || ROOT_DIR,
     encoding: 'utf8',
-    env: { ...process.env, ...options.env },
+    env: { ...process.env, npm_config_cache: NPM_CACHE_DIR, ...options.env },
     shell: isWindowsCmd,
     stdio: options.capture ? 'pipe' : 'inherit',
   });
@@ -61,9 +63,7 @@ function assertFailure(result, label) {
 }
 
 function runYarn(args, options = {}) {
-  assert(fs.existsSync(YARN_CLI_PATH), `Yarn verification requires ${YARN_CLI_PATH}.`);
-
-  return run(process.execPath, [YARN_CLI_PATH, ...args], options);
+  return run(corepackBin, ['yarn', ...args], options);
 }
 
 function writeFile(filePath, content) {
@@ -75,7 +75,7 @@ function writeJson(filePath, value) {
   writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-function createFixture(name) {
+function createFixture(name, packageJson = {}) {
   const fixtureDir = path.join(WORK_DIR, name);
 
   fs.mkdirSync(fixtureDir, { recursive: true });
@@ -83,6 +83,7 @@ function createFixture(name) {
     name: `phase9-${name}`,
     private: true,
     type: 'module',
+    ...packageJson,
   });
 
   return fixtureDir;
@@ -96,8 +97,17 @@ function installPackedPackage(fixtureDir, tarballPath) {
 }
 
 function installPackedPackageWithYarn(fixtureDir, tarballPath) {
-  assertSuccess(runYarn(['--version'], { capture: true }), 'yarn availability check');
-  writeFile(path.join(fixtureDir, 'yarn.lock'), '');
+  assertSuccess(run(corepackBin, ['--version'], { capture: true }), 'Corepack availability check');
+  const packageJsonPath = path.join(fixtureDir, 'package.json');
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+
+  if (typeof packageJson.packageManager !== 'string') {
+    writeJson(packageJsonPath, {
+      ...packageJson,
+      packageManager: `yarn@${YARN_VERSION}`,
+    });
+  }
+
   writeFile(
     path.join(fixtureDir, '.yarnrc.yml'),
     'cacheFolder: .yarn/cache\nenableGlobalCache: false\nglobalFolder: .yarn/global\nnodeLinker: node-modules\n',
@@ -427,6 +437,7 @@ function verifyExports(tarballPath) {
 
   const importScript = [
     "await import('@ytdev/linter');",
+    "await import('@ytdev/linter/eslint.config');",
     "await import('@ytdev/linter/configs/react');",
     "await import('@ytdev/linter/configs/strict');",
     "await import('@ytdev/linter/configs/strict-react');",
@@ -477,7 +488,7 @@ function verifyHuskyExistingHook(tarballPath) {
   assertSuccess(run('git', ['init'], { cwd: fixtureDir }), 'git init in Husky fixture');
   writeFile(hookPath, userHookContent);
 
-  assertSuccess(run(npxBin, ['--no-install', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }), 'Husky enable');
+  assertSuccess(run(npxBin, ['--no-install', 'ytdev-linter', 'init'], { cwd: fixtureDir }), 'Husky init');
   assertManagedHookState(hookPath, {
     expectedCommand: 'npx --no-install ytdev-linter lint',
     hasManagedBlock: true,
@@ -505,16 +516,12 @@ function verifyHuskyExistingHook(tarballPath) {
 }
 
 function verifyYarnHuskyExistingHook(tarballPath) {
-  const fixtureDir = createFixture('yarn-husky-existing-hook');
+  const fixtureDir = createFixture('yarn-husky-existing-hook', {
+    packageManager: `yarn@${YARN_VERSION}`,
+  });
   const hookPath = path.join(fixtureDir, '.husky', 'pre-commit');
   const userHookContent = '#!/usr/bin/env sh\necho user-hook\n';
 
-  writeJson(path.join(fixtureDir, 'package.json'), {
-    name: 'phase9-yarn-husky-existing-hook',
-    packageManager: 'yarn@4.9.1',
-    private: true,
-    type: 'module',
-  });
   installPackedPackageWithYarn(fixtureDir, tarballPath);
   assertSuccess(run('git', ['init'], { cwd: fixtureDir }), 'git init in Yarn Husky fixture');
   writeFile(hookPath, userHookContent);
@@ -549,11 +556,20 @@ function verifyYarnBerryHuskyWithoutPackageManager(tarballPath) {
   const userHookContent = '#!/usr/bin/env sh\necho user-hook\n';
 
   installPackedPackageWithYarn(fixtureDir, tarballPath);
+  writeJson(path.join(fixtureDir, 'package.json'), {
+    name: 'phase9-yarn-berry-husky-without-package-manager',
+    private: true,
+    type: 'module',
+  });
   assertSuccess(run('git', ['init'], { cwd: fixtureDir }), 'git init in Yarn Berry Husky fixture');
   writeFile(hookPath, userHookContent);
 
   assertSuccess(
-    runYarn(['exec', 'ytdev-linter', 'husky', 'enable'], { cwd: fixtureDir }),
+    run(
+      process.execPath,
+      [path.join(fixtureDir, 'node_modules', '@ytdev', 'linter', 'bin', 'ytdev-linter.mjs'), 'husky', 'enable'],
+      { cwd: fixtureDir },
+    ),
     'Yarn Berry Husky enable without packageManager',
   );
   assertManagedHookState(hookPath, {
@@ -598,25 +614,60 @@ function assertManagedHookState(hookPath, options) {
   }
 }
 
+const verifierGroups = new Map([
+  [
+    'npm',
+    [
+      verifyJsOnly,
+      verifyTypeScript,
+      verifyDefaultSonarFailure,
+      verifyPackagePrettierConfig,
+      verifyReactTypeScript,
+      verifySonar,
+      verifyReactSonar,
+      verifyStrictReact,
+      verifyMissingTsconfig,
+    ],
+  ],
+  ['exports', [verifyExports]],
+  ['husky', [verifyHuskyExistingHook, verifyYarnHuskyExistingHook, verifyYarnBerryHuskyWithoutPackageManager]],
+  ['yarn', [verifyYarnJsOnly, verifyYarnHuskyExistingHook, verifyYarnBerryHuskyWithoutPackageManager]],
+]);
+
+function getSelectedVerifiers(args) {
+  const selected = args.length > 0 ? args : [...verifierGroups.keys()];
+  const verifiers = [];
+  const added = new Set();
+
+  for (const name of selected) {
+    const group = verifierGroups.get(name);
+
+    if (!group) {
+      throw new Error(
+        `Unknown consumer verification group "${name}". Expected one of: ${[...verifierGroups.keys()].join(', ')}.`,
+      );
+    }
+
+    for (const verifier of group) {
+      if (!added.has(verifier.name)) {
+        added.add(verifier.name);
+        verifiers.push(verifier);
+      }
+    }
+  }
+
+  return verifiers;
+}
+
 try {
   fs.mkdirSync(WORK_DIR, { recursive: true });
 
   const tarballPath = packCurrentPackage();
+  const verifiers = getSelectedVerifiers(process.argv.slice(2));
 
-  verifyJsOnly(tarballPath);
-  verifyTypeScript(tarballPath);
-  verifyDefaultSonarFailure(tarballPath);
-  verifyYarnJsOnly(tarballPath);
-  verifyPackagePrettierConfig(tarballPath);
-  verifyReactTypeScript(tarballPath);
-  verifySonar(tarballPath);
-  verifyReactSonar(tarballPath);
-  verifyStrictReact(tarballPath);
-  verifyExports(tarballPath);
-  verifyMissingTsconfig(tarballPath);
-  verifyHuskyExistingHook(tarballPath);
-  verifyYarnHuskyExistingHook(tarballPath);
-  verifyYarnBerryHuskyWithoutPackageManager(tarballPath);
+  for (const verifier of verifiers) {
+    verifier(tarballPath);
+  }
 
   console.log('Consumer package fixture verification passed.');
 } finally {
