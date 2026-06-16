@@ -13,11 +13,25 @@ import { typescriptRule } from './rules/typescript.rule.mjs';
 
 const tsconfigRootDir = process.cwd();
 const eslintRecommended = { ...pluginJs.configs.recommended, name: '@eslint/js/recommended' };
+const globalsRule = {
+  name: '@ytdev/linter/globals',
+  languageOptions: { globals: { ...globals.browser, ...globals.node } },
+};
+const typescriptParserOptionsRule = {
+  name: '@ytdev/linter/typescript-parser-options',
+  files: ['**/*.{ts,tsx}'],
+  languageOptions: {
+    parserOptions: {
+      projectService: true,
+      tsconfigRootDir,
+    },
+  },
+};
 const prettierConflictSuppressions = { ...eslintConfigPrettier, name: 'eslint-config-prettier' };
 
 export default [
   ignoreRule,
-  { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
+  globalsRule,
   eslintRecommended,
   bestPracticesRule,
   modernJavaScriptRule,
@@ -28,15 +42,7 @@ export default [
     ...config,
     files: ['**/*.{ts,tsx}'],
   })),
-  {
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir,
-      },
-    },
-  },
+  typescriptParserOptionsRule,
   typescriptRule,
   prettierConflictSuppressions,
 ];
