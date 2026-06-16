@@ -27,8 +27,12 @@
   "packageManager": "npm@10.9.8",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ytdev/linter.git"
+    "url": "git+https://github.com/ytvee-dev/linter.git"
   },
+  "bugs": {
+    "url": "https://github.com/ytvee-dev/linter/issues"
+  },
+  "homepage": "https://github.com/ytvee-dev/linter#readme",
   "engines": {
     "node": ">=18.17.0"
   },
