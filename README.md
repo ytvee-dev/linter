@@ -1,24 +1,20 @@
 # @ytvee/linter
 
-Единый набор конфигураций ESLint, Prettier и командной утилиты для проектов на JavaScript, TypeScript и React.
+Готовый набор конфигураций ESLint, Prettier и командной утилиты для проектов на JavaScript, TypeScript и React.
 
-Пакет опубликован в npm: [страница пакета](https://www.npmjs.com/package/@ytvee/linter).
+Пакет в npm: [https://www.npmjs.com/package/@ytvee/linter](https://www.npmjs.com/package/@ytvee/linter)
 
-## Что Внутри
+## Документация
 
-- Готовые плоские конфигурации ESLint для JavaScript, TypeScript и React.
-- Базовая проверка Sonar включена в обычный запуск `lint`.
-- Команда `fix` использует профиль без Sonar, чтобы автоисправление не меняло смысл кода из-за диагностических правил.
-- Prettier запускается отдельно и получает `--ignore-unknown`, поэтому неизвестные форматы файлов пропускаются.
-- Поддержана явная настройка проверки перед коммитом через `ytvee-linter init`; установка пакета не меняет файлы проекта.
-- Пакет устанавливает свои рабочие зависимости сам, поэтому в обычном проекте достаточно одной команды установки.
+- [Справочник профилей](https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES_RU.md) — выбор профиля и примеры `eslint.config.mjs`.
+- [Обзор правил](https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md) — группы правил, которые включают публичные профили.
 
 ## Требования
 
 - Node.js `>=18.17.0`.
 - ESLint `>=9`.
-- Для TypeScript-файлов без собственного `eslint.config.*` нужен `tsconfig.json` в корне проекта.
-- Установка и запуск поддержаны для npm и Yarn. Для команды проверки перед коммитом также учитывается pnpm, если проект использует `pnpm-lock.yaml` или `packageManager`.
+- Для проверки TypeScript-файлов без собственного `eslint.config.*` нужен `tsconfig.json` в корне проекта.
+- Установка поддержана через npm и Yarn. Команды для проверки перед коммитом также учитывают pnpm, если проект использует `pnpm-lock.yaml` или `packageManager`.
 
 ## Установка
 
@@ -30,97 +26,207 @@ npm install -D @ytvee/linter
 yarn add -D @ytvee/linter
 ```
 
-Установка не создает `eslint.config.*`, не добавляет проверку перед коммитом и не запускает скрипты жизненного цикла, которые меняют проект-потребитель.
+Установка не создает `eslint.config.*`, не меняет файлы проекта и не включает проверку перед коммитом. Все изменения в проекте выполняются только явными командами.
 
-## Быстрая Проверка
+## Быстрый старт
+
+Проверка кода и форматирования:
 
 ```bash
 npx --no-install ytvee-linter lint
 npx --no-install ytvee-linter format --check
+```
+
+Автоисправление:
+
+```bash
 npx --no-install ytvee-linter fix
+```
+
+Форматирование:
+
+```bash
+npx --no-install ytvee-linter format
 ```
 
 Для Yarn:
 
 ```bash
 yarn exec ytvee-linter lint
-yarn exec ytvee-linter format --check
 yarn exec ytvee-linter fix
+yarn exec ytvee-linter format --check
+```
+
+Удобные скрипты для `package.json`:
+
+```json
+{
+  "scripts": {
+    "lint": "ytvee-linter lint",
+    "lint:fix": "ytvee-linter fix",
+    "format": "ytvee-linter format",
+    "format:check": "ytvee-linter format --check",
+    "prepare-linter": "ytvee-linter init"
+  }
+}
 ```
 
 ## Команды
 
-| Команда                                  | Что Делает                                                                                             |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `ytvee-linter lint [paths...]`           | Запускает ESLint. Если в проекте нет локального `eslint.config.*`, используется профиль React + Sonar. |
-| `ytvee-linter fix [paths...]`            | Запускает ESLint с автоисправлением через профиль React без Sonar, затем запускает Prettier.           |
-| `ytvee-linter format [paths...]`         | Запускает только Prettier в режиме записи.                                                             |
-| `ytvee-linter format --check [paths...]` | Проверяет форматирование через Prettier без записи файлов.                                             |
-| `ytvee-linter init`                      | Включает управляемую проверку перед коммитом в текущем Git-проекте.                                    |
-| `ytvee-linter init --husky`              | Совместимый псевдоним для `ytvee-linter init`.                                                         |
-| `ytvee-linter husky enable`              | Добавляет или обновляет управляемый блок проверки.                                                     |
-| `ytvee-linter husky disable`             | Удаляет только управляемый блок проверки и сохраняет пользовательское содержимое.                      |
+### `ytvee-linter lint [paths...]`
 
-Если пути не переданы, `lint` и `fix` проверяют текущий проект, а `format` работает только по безопасным исходным и конфигурационным расширениям:
+Запускает ESLint для `.js`, `.mjs`, `.ts` и `.tsx`.
+
+Если в проекте есть локальный `eslint.config.*`, команда использует его. Если локального конфига нет, используется профиль `@ytvee/linter`, который равен `react-sonar`.
+
+Если пути не переданы, проверяется текущий каталог:
+
+```bash
+npx --no-install ytvee-linter lint
+npx --no-install ytvee-linter lint src
+npx --no-install ytvee-linter lint src/index.ts
+```
+
+### `ytvee-linter fix [paths...]`
+
+Запускает ESLint с `--fix`, а после успешного ESLint запускает Prettier в режиме записи.
+
+Если в проекте есть локальный `eslint.config.*`, команда использует его. Если локального конфига нет, используется профиль `@ytvee/linter/configs/fix`, который равен React-профилю без SonarJS. Это сохраняет автоисправление прикладным: диагностические правила SonarJS не участвуют в команде `fix`.
+
+Если пути не переданы, ESLint проверяет текущий каталог, а Prettier форматирует безопасный набор исходных и конфигурационных файлов.
+
+```bash
+npx --no-install ytvee-linter fix
+npx --no-install ytvee-linter fix src
+npx --no-install ytvee-linter fix src/App.tsx
+```
+
+### `ytvee-linter format [paths...]`
+
+Запускает только Prettier в режиме записи. Команда использует конфигурацию `@ytvee/linter/prettier` и передает `--ignore-unknown`, чтобы неподдерживаемые форматы файлов пропускались без ошибки.
+
+Если пути не переданы, форматируются файлы с расширениями:
 
 ```text
 js, cjs, mjs, jsx, ts, tsx, json, jsonc, css, scss, html, yml, yaml
 ```
 
-## Нюансы Поведения
+Примеры:
 
-`lint` и `fix` сначала ищут локальный `eslint.config.*` в проекте-потребителе. Если локальная конфигурация найдена, пакет не подменяет ее своей.
+```bash
+npx --no-install ytvee-linter format
+npx --no-install ytvee-linter format src
+npx --no-install ytvee-linter format package.json
+```
 
-Если локальной конфигурации нет, `lint` берет корневой профиль пакета. Этот профиль равен `react-sonar`, поэтому обычная проверка включает React-правила и Sonar-правила.
+### `ytvee-linter format --check [paths...]`
 
-`fix` при отсутствии локальной конфигурации берет профиль `fix`, который равен `react`. Это сделано намеренно: автоисправление остается прикладным и не включает Sonar-проверки.
+Проверяет форматирование через Prettier без записи файлов. Использует ту же конфигурацию и тот же безопасный набор расширений, что и `format`.
 
-`format` не запускает ESLint. Команда использует Prettier из пакета и конфигурацию `@ytvee/linter/prettier`.
+```bash
+npx --no-install ytvee-linter format --check
+npx --no-install ytvee-linter format --check src
+```
 
-Для TypeScript-файлов включены правила, которым нужны сведения о типах. Поэтому при резервной конфигурации пакет требует `tsconfig.json` в корне проекта. Если его нет, команда завершится понятной ошибкой до запуска ESLint.
+### `ytvee-linter init`
 
-## Проверка Перед Коммитом
+Включает управляемую проверку перед коммитом в текущем Git-проекте.
 
-Проверка перед коммитом включается только явно:
+Команда:
+
+- настраивает `core.hooksPath=.husky`;
+- создает или обновляет `.husky/pre-commit`;
+- добавляет управляемый блок между `# @ytvee/linter begin` и `# @ytvee/linter end`;
+- сохраняет остальное содержимое `.husky/pre-commit`;
+- при повторном запуске обновляет существующий блок без дублей.
 
 ```bash
 npx --no-install ytvee-linter init
 ```
 
-Для Yarn:
+`ytvee-linter init --husky` делает то же самое.
+
+### `ytvee-linter husky enable`
+
+Повторно добавляет или обновляет управляемый блок проверки перед коммитом.
 
 ```bash
-yarn exec ytvee-linter init
+npx --no-install ytvee-linter husky enable
 ```
 
-Команда настраивает `core.hooksPath=.husky`, создает или обновляет `.husky/pre-commit` и добавляет управляемый блок:
+Команда внутри `.husky/pre-commit` выбирается по менеджеру пакетов проекта:
 
-```text
-# @ytvee/linter begin
-npx --no-install ytvee-linter lint
-# @ytvee/linter end
-```
-
-Существующее пользовательское содержимое файла проверки сохраняется. Повторный запуск не создает дубликаты управляемого блока.
-
-Команда внутри файла проверки выбирается по проекту-потребителю:
-
-| Проект       | Команда В Файле Проверки             |
+| Проект       | Команда                              |
 | ------------ | ------------------------------------ |
 | npm          | `npx --no-install ytvee-linter lint` |
 | Yarn Berry   | `yarn exec ytvee-linter lint`        |
 | Yarn classic | `yarn run -s ytvee-linter lint`      |
 | pnpm         | `pnpm exec ytvee-linter lint`        |
 
-Отключение управляемого блока:
+### `ytvee-linter husky disable`
+
+Удаляет только управляемый блок `@ytvee/linter` из `.husky/pre-commit` и сохраняет пользовательские команды.
 
 ```bash
 npx --no-install ytvee-linter husky disable
 ```
 
-## Публичные Импорты
+## Конфигурация ESLint
 
-Пакет экспортирует такие точки входа:
+Создавать `eslint.config.mjs` не обязательно. Без локального `eslint.config.*` команда `lint` использует профиль React + SonarJS.
+
+Если нужно явно выбрать профиль или добавить переопределения, создайте `eslint.config.mjs`.
+
+Корневой профиль, он же React + SonarJS:
+
+```js
+import config from '@ytvee/linter';
+
+export default config;
+```
+
+React без SonarJS:
+
+```js
+import config from '@ytvee/linter/configs/react';
+
+export default config;
+```
+
+React с SonarJS:
+
+```js
+import config from '@ytvee/linter/configs/react-sonar';
+
+export default config;
+```
+
+Строгий React:
+
+```js
+import config from '@ytvee/linter/configs/strict-react';
+
+export default config;
+```
+
+Переопределение правил добавляйте после профиля:
+
+```js
+import config from '@ytvee/linter/configs/react';
+
+export default [
+  ...config,
+  {
+    rules: {
+      'no-console': 'warn',
+    },
+  },
+];
+```
+
+Подробный выбор профилей описан в [справочнике профилей](https://github.com/ytvee-dev/linter/blob/main/docs/PROFILES_RU.md).
+
+## Публичные импорты
 
 ```text
 @ytvee/linter
@@ -135,41 +241,24 @@ npx --no-install ytvee-linter husky disable
 @ytvee/linter/prettier
 ```
 
-Пример локальной конфигурации ESLint:
+Назначение профилей:
 
-```js
-import config from '@ytvee/linter';
-
-export default config;
-```
-
-React-профиль без Sonar:
-
-```js
-import config from '@ytvee/linter/configs/react';
-
-export default config;
-```
-
-React-профиль с Sonar:
-
-```js
-import config from '@ytvee/linter/configs/react-sonar';
-
-export default config;
-```
-
-Строгий React-профиль:
-
-```js
-import config from '@ytvee/linter/configs/strict-react';
-
-export default config;
-```
+| Импорт                               | Что включает                                                           |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `@ytvee/linter`                      | То же, что `@ytvee/linter/configs/default`: React + SonarJS.           |
+| `@ytvee/linter/eslint.config`        | Алиас корневого профиля.                                               |
+| `@ytvee/linter/configs/default`      | React + SonarJS.                                                       |
+| `@ytvee/linter/configs/fix`          | React без SonarJS; используется командой `fix` без локального конфига. |
+| `@ytvee/linter/configs/react`        | Базовые правила, TypeScript, импорты, React, хуки и доступность.       |
+| `@ytvee/linter/configs/react-sonar`  | React-профиль плюс SonarJS.                                            |
+| `@ytvee/linter/configs/sonar`        | Базовые правила плюс SonarJS без React-слоя.                           |
+| `@ytvee/linter/configs/strict`       | Базовые правила плюс строгие TypeScript-ограничения.                   |
+| `@ytvee/linter/configs/strict-react` | React-профиль плюс строгие TypeScript-ограничения.                     |
+| `@ytvee/linter/prettier`             | Конфигурация Prettier.                                                 |
 
 ## Конфигурация Prettier
 
-Пакет поставляет такую конфигурацию:
+Если нужна отдельная конфигурация Prettier:
 
 ```js
 module.exports = require('@ytvee/linter/prettier');
@@ -177,110 +266,57 @@ module.exports = require('@ytvee/linter/prettier');
 
 Параметры:
 
-| Параметр        | Значение |
-| --------------- | -------- |
-| `printWidth`    | `120`    |
-| `semi`          | `true`   |
-| `singleQuote`   | `true`   |
-| `tabWidth`      | `2`      |
-| `trailingComma` | `all`    |
-
-## Профили
-
-| Импорт                               | Назначение                                                                  |
-| ------------------------------------ | --------------------------------------------------------------------------- |
-| `@ytvee/linter`                      | Корневой профиль, равен `react-sonar`.                                      |
-| `@ytvee/linter/configs/default`      | То же, что корневой профиль.                                                |
-| `@ytvee/linter/configs/fix`          | React-профиль без Sonar, используется командой `fix` как резервный профиль. |
-| `@ytvee/linter/configs/react`        | Базовые правила, TypeScript, импорты, React, хуки и доступность.            |
-| `@ytvee/linter/configs/react-sonar`  | React-профиль плюс Sonar-правила.                                           |
-| `@ytvee/linter/configs/sonar`        | Базовый профиль плюс Sonar-правила без React-слоя.                          |
-| `@ytvee/linter/configs/strict`       | Базовый профиль плюс более строгие TypeScript-правила.                      |
-| `@ytvee/linter/configs/strict-react` | React-профиль плюс строгие TypeScript-правила.                              |
-
-## Что Проверяется
-
-- Ошибки из рекомендуемого набора ESLint.
-- Современный JavaScript: запрет `var`, предпочтение `const`.
-- Опасные конструкции: `eval`, `Function`, расширение встроенных объектов, `__proto__`.
-- Импорты и их сортировка.
-- TypeScript: явные возвращаемые типы, порядок членов класса, явная область доступа, неиспользуемые значения.
-- React: JSX-расширения, ключи, дублирующиеся свойства, самозакрывающиеся компоненты.
-- Хуки React: правила вызова хуков и зависимости.
-- Доступность JSX: альтернативный текст, корректные ссылки и интерактивность.
-- Sonar-правила в профилях `sonar`, `react-sonar` и в обычном `lint`.
-
-Строгие профили дополнительно запрещают `any`, усиливают соглашения именования и ограничивают один крупный TypeScript-тип на файл.
-
-## Содержимое Публикуемого Пакета
-
-В публикуемый архив npm намеренно попадает только рабочая поверхность:
-
-```text
-LICENSE
-README.md
-bin
-configs
-eslint.config.mjs
-package.json
-prettier.js
-```
-
-Проверочные скрипты, временные каталоги, `.github`, `.husky`, `docs` и внутренние рабочие файлы не являются частью устанавливаемого пакета.
-
-## Проверка После Установки
-
-В проекте-потребителе можно проверить установку так:
-
-```bash
-npm install -D @ytvee/linter
-npx --no-install ytvee-linter --help
-npx --no-install ytvee-linter lint
-npx --no-install ytvee-linter format --check
-```
-
-Для Yarn:
-
-```bash
-yarn add -D @ytvee/linter
-yarn exec ytvee-linter --help
-yarn exec ytvee-linter lint
-yarn exec ytvee-linter format --check
-```
-
-## Разработка Пакета
-
-Основные проверки репозитория:
-
-```bash
-npm run audit:rules
-npm run verify:consumer:exports
-npm pack --dry-run --json --cache tmp/npm-cache-audit
-```
-
-`audit:rules` проверяет пересекающиеся определения правил в публичных профилях и разрешает только явно ожидаемые переопределения.
-
-`verify:consumer:exports` собирает пакет во временный архив и проверяет публичные импорты из проекта-потребителя.
-
-## Публикация
-
-Пакет настроен как публичный:
-
 ```json
 {
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  }
+  "printWidth": 120,
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "all"
 }
 ```
 
-В репозитории есть рабочий процесс публикации при попадании изменений в `main`. Он запускает проверки, поднимает версию, создает тег и публикует пакет в реестр npm. Для публикации через этот процесс нужен секрет `NPM_TOKEN` с правом публикации.
+## Что проверяется
+
+Краткий обзор правил:
+
+- рекомендуемые правила ESLint;
+- TypeScript-правила с проверкой типов для `.ts` и `.tsx`;
+- явные типы возврата функций;
+- запрет неиспользуемых переменных, кроме имен с `_`;
+- порядок членов класса и явные модификаторы доступа;
+- сортировка импортов и запрет дублей импортов;
+- React, JSX, хуки и базовая доступность;
+- SonarJS в профилях `sonar`, `react-sonar` и в обычном `lint`;
+- строгие TypeScript-ограничения в профилях `strict` и `strict-react`.
+
+Подробнее группы правил описаны в [обзоре правил](https://github.com/ytvee-dev/linter/blob/main/docs/README_RULES_RU.md).
+
+## Частые проблемы
+
+### Нет `tsconfig.json`
+
+Если команда без локального `eslint.config.*` проверяет `.ts` или `.tsx`, в корне проекта должен быть `tsconfig.json`. Это нужно для правил TypeScript, которым требуются сведения о типах.
+
+Решения:
+
+- добавьте `tsconfig.json`;
+- проверяйте только JavaScript-файлы;
+- создайте локальный `eslint.config.*` и настройте `parserOptions` самостоятельно.
+
+### Команда использует не тот ESLint-профиль
+
+Если в проекте есть `eslint.config.js`, `eslint.config.mjs`, `eslint.config.cjs`, `eslint.config.ts`, `eslint.config.mts` или `eslint.config.cts`, команды `lint` и `fix` используют его. Резервные профили пакета применяются только когда локального конфига нет.
+
+### SonarJS мешает автоисправлению
+
+Команда `fix` без локального `eslint.config.*` использует профиль `react` без SonarJS. Если вы добавили локальный `eslint.config.*`, поведение `fix` определяется вашим конфигом.
 
 ## Лицензия
 
-MIT.
+MIT. Профиль автора: [https://github.com/ytvee](https://github.com/ytvee).
 
 ## Ссылки
 
 - [Пакет в npm](https://www.npmjs.com/package/@ytvee/linter)
+- [Профиль автора](https://github.com/ytvee)

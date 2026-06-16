@@ -1,276 +1,143 @@
-# Как применять профили
+# Справочник профилей
 
-Этот документ объясняет, как использовать различные профили конфигурации из `@ytdev/linter` в вашем проекте.
+Этот документ помогает выбрать публичный профиль `@ytvee/linter` для локального `eslint.config.mjs`.
 
-## Default zero-config CLI path
+Если локального `eslint.config.*` нет, команда `ytvee-linter lint` использует корневой профиль `@ytvee/linter`, то есть React + SonarJS. Команда `ytvee-linter fix` в такой же ситуации использует `@ytvee/linter/configs/fix`, то есть React без SonarJS.
 
-Для стандартной настройки установите пакет и запускайте CLI без создания `eslint.config.mjs`:
+## Общие требования
 
-```bash
-npm install -D @ytdev/linter
-npx ytdev-linter lint
-npx ytdev-linter fix
-npx ytdev-linter format
-npx ytdev-linter format --check
-```
+- Профили рассчитаны на плоскую конфигурацию ESLint.
+- Для `.ts` и `.tsx` используется проверка типов через `typescript-eslint`.
+- В корне проекта нужен `tsconfig.json`, если проверяются TypeScript-файлы и вы не задаете собственные `parserOptions`.
+- Форматирование выполняется Prettier отдельно, а не через ESLint-правило.
 
-`ytdev-linter lint` и `ytdev-linter fix` используют project `eslint.config.*`, если он есть. Если локального ESLint flat config нет, они используют default non-Sonar config из пакета. Прямые imports профилей - advanced path для проектов, которым нужны React, strict, Sonar, React Sonar или custom overrides через raw ESLint.
+## Как выбрать профиль
 
-## Доступные профили
+| Задача                                        | Импорт                               |
+| --------------------------------------------- | ------------------------------------ |
+| Обычный проект с React, TypeScript и SonarJS  | `@ytvee/linter`                      |
+| То же самое через явный профиль               | `@ytvee/linter/configs/default`      |
+| React без SonarJS                             | `@ytvee/linter/configs/react`        |
+| React с SonarJS                               | `@ytvee/linter/configs/react-sonar`  |
+| JavaScript/TypeScript без React, но с SonarJS | `@ytvee/linter/configs/sonar`        |
+| Строгий JavaScript/TypeScript без React       | `@ytvee/linter/configs/strict`       |
+| Строгий React                                 | `@ytvee/linter/configs/strict-react` |
+| Профиль автоисправления без SonarJS           | `@ytvee/linter/configs/fix`          |
 
-### Базовый профиль
+## Корневой профиль
 
-Базовый профиль включает фундаментальные правила ESLint, проверку типов TypeScript, управление импортами и отключение конфликтов с Prettier. Форматирование Prettier запускается отдельной командой, а не как ESLint rule.
-
-**Что включено:**
-
-- Все рекомендуемые правила `@eslint/js`
-- Правила TypeScript (type-checked)
-- Best Practices из Airbnb
-- Сортировка импортов
-- Отключение конфликтов с Prettier
-- `@typescript-eslint/no-explicit-any` отключён (для постепенной миграции)
-
-**Как использовать:**
+Корневой импорт равен `@ytvee/linter/configs/default`, а `default` равен `react-sonar`.
 
 ```js
-import baseConfig from '@ytdev/linter';
+import config from '@ytvee/linter';
 
-export default [...baseConfig];
+export default config;
 ```
 
-### Строгий профиль
+Используйте этот вариант, если проекту нужны React-правила, хуки, базовая доступность и SonarJS-диагностика.
 
-Строгий профиль расширяет базовый профиль дополнительными ограничениями для больших команд и enterprise-проектов.
-
-**Что добавлено:**
-
-- `@typescript-eslint/no-explicit-any` включён (ошибка)
-- Принудительное соглашение об именовании (`camelCase`/`PascalCase`)
-- Один публичный тип/класс/enum на файл
-
-**Как использовать:**
+## React без SonarJS
 
 ```js
-import strictConfig from '@ytdev/linter/configs/strict';
+import config from '@ytvee/linter/configs/react';
 
-export default [...strictConfig];
+export default config;
 ```
 
-Примечание: Строгий профиль уже включает все базовые правила, поэтому вам не нужно импортировать базовую конфигурацию отдельно.
+Профиль включает базовые правила, TypeScript, импорты, JSX, React Hooks и правила доступности. SonarJS не включается.
 
-### React-профиль
+Этот профиль также используется командой `ytvee-linter fix`, если в проекте нет локального `eslint.config.*`.
 
-React-профиль добавляет правила специфичные для React, включая JSX, хуки и проверки доступности.
-
-**Что добавлено:**
-
-- Правила React (синтаксис JSX, компоненты)
-- Правила React Hooks
-- Правила доступности (a11y)
-
-**Как использовать:**
+## React с SonarJS
 
 ```js
-import reactConfig from '@ytdev/linter/configs/react';
+import config from '@ytvee/linter/configs/react-sonar';
 
-export default [...reactConfig];
+export default config;
 ```
 
-Примечание: React-профиль уже включает все базовые правила, поэтому вам не нужно импортировать базовую конфигурацию отдельно.
+Профиль включает все из `react` и добавляет правила `sonarjs/*`.
 
-### Sonar profiles
-
-Use `@ytdev/linter/configs/sonar` for Base + generated executable SonarJS rules.
+## SonarJS без React
 
 ```js
-import sonarConfig from '@ytdev/linter/configs/sonar';
+import config from '@ytvee/linter/configs/sonar';
 
-export default [...sonarConfig];
+export default config;
 ```
 
-Use `@ytdev/linter/configs/react-sonar` for React + generated executable SonarJS rules.
+Профиль подходит для JavaScript и TypeScript-проектов без JSX. Он включает базовые правила и SonarJS, но не добавляет React, React Hooks и `jsx-a11y`.
+
+## Строгий профиль
 
 ```js
-import reactSonarConfig from '@ytdev/linter/configs/react-sonar';
+import config from '@ytvee/linter/configs/strict';
 
-export default [...reactSonarConfig];
+export default config;
 ```
 
-SonarQube-compatible execution is provided through `eslint-plugin-sonarjs`. Plain `sonar` covers `base` plus generated SonarJS execution; React-only external mappings stay in `react` and `react-sonar`. ESLint executes only reliable JS/TS implementations.
+Профиль добавляет к базовым правилам строгие TypeScript-ограничения:
 
-Package surface note: repo verification scripts and documentation sources are not included in the npm tarball.
+- `@typescript-eslint/no-explicit-any`;
+- соглашение именования для переменных;
+- один крупный TypeScript-тип, класс или перечисление на файл.
 
-## Распространённые комбинации
-
-### Базовый JavaScript/TypeScript проект
-
-Для стандартного Node.js или TypeScript проекта без React:
+## Строгий React
 
 ```js
-import baseConfig from '@ytdev/linter';
+import config from '@ytvee/linter/configs/strict-react';
 
-export default [...baseConfig];
+export default config;
 ```
 
-### React-приложение
+Профиль включает React-слой и строгие TypeScript-ограничения. Используйте его, если проекту нужны React-правила без SonarJS, но с запретом `any` и ограничением крупных объявлений на файл.
 
-Для React-приложения со стандартными правилами:
+## Переопределения
 
-```js
-import reactConfig from '@ytdev/linter/configs/react';
-
-export default [...reactConfig];
-```
-
-### Строгое React-приложение
-
-Для React-приложения со строгими правилами:
+Добавляйте свои правила последним элементом массива:
 
 ```js
-import strictConfig from '@ytdev/linter/configs/strict';
-import reactConfig from '@ytdev/linter/configs/react';
+import config from '@ytvee/linter/configs/react';
 
 export default [
-  ...strictConfig, // включает базовые правила + строгие правила
-  ...reactConfig, // добавляет React-специфичные правила (без базовых)
-];
-```
-
-Примечание: При комбинировании строгого и React профилей порядок имеет значение. Строгий профиль должен быть первым, чтобы базовые правила применялись корректно.
-
-### React-приложение без строгих правил TypeScript
-
-Если вы хотите правила React, но не строгие правила TypeScript:
-
-```js
-import baseConfig from '@ytdev/linter';
-import reactConfig from '@ytdev/linter/configs/react';
-
-export default [...baseConfig, ...reactConfig];
-```
-
-## Пользовательские переопределения
-
-Вы можете добавить свои собственные правила или переопределить существующие:
-
-```js
-import reactConfig from '@ytdev/linter/configs/react';
-
-export default [
-  ...reactConfig,
+  ...config,
   {
     rules: {
-      // Переопределение конкретных правил
       'no-console': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'off',
+      'react-hooks/exhaustive-deps': 'error',
     },
   },
 ];
 ```
 
-## Конфигурация для конкретных файлов
-
-Вы можете применять разные правила к конкретным файлам или директориям:
+Для отдельных файлов используйте `files`:
 
 ```js
-import reactConfig from '@ytdev/linter/configs/react';
+import config from '@ytvee/linter/configs/strict-react';
 
 export default [
-  ...reactConfig,
+  ...config,
   {
     files: ['**/*.test.{ts,tsx}'],
     rules: {
-      // Смягчить правила для тестовых файлов
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
-  {
-    files: ['scripts/**/*.js'],
-    rules: {
-      // Правила специфичные для Node.js скриптов
-      'no-console': 'off',
-    },
-  },
 ];
 ```
 
-## Стратегия миграции
+## Проверка локального конфига
 
-### Постепенная миграция к строгим правилам
+После выбора профиля запустите ESLint напрямую или через команду пакета:
 
-Если вы мигрируете существующую кодовую базу, начните с базового профиля:
-
-```js
-// Шаг 1: Начните с базового профиля
-import baseConfig from '@ytdev/linter';
-
-export default [...baseConfig];
+```bash
+npx --no-install eslint .
+npx --no-install ytvee-linter lint
 ```
 
-После исправления всех проблем, переходите к строгому:
+Если локальный `eslint.config.*` существует, `ytvee-linter lint` и `ytvee-linter fix` используют именно его.
 
-```js
-// Шаг 2: Включите строгие правила
-import strictConfig from '@ytdev/linter/configs/strict';
+## Связанные документы
 
-export default [...strictConfig];
-```
-
-### Временное отключение правил
-
-Во время миграции можно временно отключить конкретные правила:
-
-```js
-import strictConfig from '@ytdev/linter/configs/strict';
-
-export default [
-  ...strictConfig,
-  {
-    rules: {
-      // Временно отключить до завершения миграции
-      '@typescript-eslint/naming-convention': 'warn', // понизить до предупреждения
-    },
-  },
-];
-```
-
-## Решение проблем
-
-### TypeScript Project Service
-
-Если возникают проблемы с линтингом TypeScript, убедитесь, что у вас есть валидный `tsconfig.json` в корне проекта. Конфигурация использует `projectService`, который автоматически определяет вашу конфигурацию TypeScript.
-
-### Проблемы с производительностью
-
-Для больших проектов вы можете исключить определённые директории:
-
-```js
-import reactConfig from '@ytdev/linter/configs/react';
-
-export default [{ ignores: ['**/build/**', '**/dist/**', '**/.next/**'] }, ...reactConfig];
-```
-
-### Конфликтующие правила
-
-Если возникают конфликты с другими конфигурациями или плагинами ESLint, убедитесь что:
-
-1. Размещаете конфигурации `@ytdev/linter` первыми
-2. Добавляете свои пользовательские правила последними
-3. Используете явные переопределения для конфликтующих правил
-
-```js
-import reactConfig from '@ytdev/linter/configs/react';
-import someOtherConfig from 'eslint-config-other';
-
-export default [
-  ...reactConfig,
-  ...someOtherConfig,
-  {
-    rules: {
-      // Явное переопределение для разрешения конфликта
-      'some-rule': 'error',
-    },
-  },
-];
-```
+- [README.md](../README.md) — установка, команды и публичные импорты.
+- [README_RULES_RU.md](README_RULES_RU.md) — обзор групп правил.
