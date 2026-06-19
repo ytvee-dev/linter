@@ -1,24 +1,23 @@
-import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import pluginJs from '@eslint/js';
 
-import { bestPracticesRule } from './rules/best-practices.rule.mjs';
-import { ignoreRule } from './rules/ignore.rule.mjs';
-import { importRule } from './rules/import.rule.mjs';
-import { importsRule } from './rules/import-sort.rule.mjs';
-import { javascriptRule, modernJavaScriptRule } from './rules/javascript.rule.mjs';
-import { typescriptRule } from './rules/typescript.rule.mjs';
+import { bestPracticesRule } from '../rules/best-practices.rule.mjs';
+import { ignoreRule } from '../rules/ignore.rule.mjs';
+import { importRule } from '../rules/import.rule.mjs';
+import { importsRule } from '../rules/import-sort.rule.mjs';
+import { javascriptRule, modernJavaScriptRule } from '../rules/javascript.rule.mjs';
+import { typescriptRule } from '../rules/typescript.rule.mjs';
 
 const tsconfigRootDir = process.cwd();
 const eslintRecommended = { ...pluginJs.configs.recommended, name: '@eslint/js/recommended' };
 const globalsRule = {
-  name: '@ytvee/linter/globals',
+  name: 'local-eslint/globals',
   languageOptions: { globals: { ...globals.browser, ...globals.node } },
 };
 const typescriptParserOptionsRule = {
-  name: '@ytvee/linter/typescript-parser-options',
+  name: 'local-eslint/typescript-parser-options',
   files: ['**/*.{ts,tsx}'],
   languageOptions: {
     parserOptions: {
@@ -27,8 +26,6 @@ const typescriptParserOptionsRule = {
     },
   },
 };
-const prettierConflictSuppressions = { ...eslintConfigPrettier, name: 'eslint-config-prettier' };
-
 export default [
   ignoreRule,
   globalsRule,
@@ -44,5 +41,4 @@ export default [
   })),
   typescriptParserOptionsRule,
   typescriptRule,
-  prettierConflictSuppressions,
 ];

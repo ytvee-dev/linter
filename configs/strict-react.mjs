@@ -1,4 +1,5 @@
-import { oneModuleRule } from './rules/one-module.rule.mjs';
+import { oneModuleRule } from '../rules/one-module.rule.mjs';
+
 import react from './react.mjs';
 import { strictRule } from './strict.mjs';
 

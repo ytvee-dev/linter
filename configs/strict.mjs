@@ -1,8 +1,9 @@
-import { oneModuleRule } from './rules/one-module.rule.mjs';
+import { oneModuleRule } from '../rules/one-module.rule.mjs';
+
 import base from './base.mjs';
 
 export const strictRule = {
-  name: '@ytvee/linter/strict',
+  name: 'local-eslint/strict',
   files: ['**/*.ts', '**/*.tsx'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'error',
